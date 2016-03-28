@@ -48,7 +48,7 @@ $(function() {
 		$('#tree>div>ul>li>div>input').prop('checked',val);
 	});
 	$('#btnToggleBefore').click(function() {
-		var index=$('#tree>div>ul>li>div>li:has(a.selected)').index();
+		var index=$('#tree>div>ul>li:has(a.selected)').index();
 		var val=$('#tree>div>ul>li>div>input:lt('+index+'):checked').length<$('#tree>div>ul>li>div>input:lt('+index+'):not(:checked)').length;
 		$('#tree>div>ul>li>div>input:lt('+index+')').prop('checked',val);
 	});
