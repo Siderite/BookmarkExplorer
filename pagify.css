@@ -1,0 +1,16 @@
+.subtree {
+	opacity:0.3;
+}
+li div {
+	clear:both;
+}
+li input {
+	float:right;
+	margin-right:20px;
+}
+li:hover {
+	background:#E0E0F0;
+}
+a.selected {
+	background:#A0A0F0;
+}
