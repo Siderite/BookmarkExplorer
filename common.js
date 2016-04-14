@@ -15,6 +15,23 @@ function sameUrls(u1, u2) {
 	return u1 == u2;
 };
 
+var notifications={};
+function notify(text) {
+	if (notifications[text]) {
+		return;
+	}
+	chrome.notifications.create(null, {
+	  type: "basic",
+   	  title: "Siderite's Bookmark Explorer",
+	  message: text,
+	  iconUrl: "bigIcon.png"
+	});
+	notifications[text]=true;
+	setTimeout(function() {
+		notifications[text]=false;
+	},5000);
+}
+
 function getInfo(url, tree, path) {
 	if (tree.title) {
 		if (path) {
@@ -28,8 +45,13 @@ function getInfo(url, tree, path) {
 	arr.forEach(function (itm, idx) {
 		if (itm.children) {
 			var r = getInfo(url, itm, path);
-			if (r)
-				result = r;
+			if (r) {
+				if (result) {
+					notify(r.current.title+' ('+r.current.url+' in '+itm.title+') is a duplicate bookmark! Using the one in '+result.folder.title);
+				} else {
+					result = r;
+				}
+			}
 		}
 		if (sameUrls(itm.url, url)) {
 			var prev = null;
