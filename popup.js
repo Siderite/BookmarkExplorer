@@ -13,7 +13,7 @@ function refresh() {
 		},
 		tabId : tabId
 	});
-	withCurrentTab(function(tab) {
+	withCurrentTab(function (tab) {
 		tabId = tab.id;
 		if (tab.url) {
 			refreshButtons(tab.url);
@@ -21,22 +21,12 @@ function refresh() {
 	});
 }
 
-function handler() {
-	if (this.url) {
-		var url = this.url;
-		chrome.tabs.update(tabId, {
-			url : url
-		});
-		refreshButtons(url);
-	}
-}
-
 function refreshButtons(url) {
 	chrome.bookmarks.getTree(function (tree) {
 		var data = getInfo(url, tree);
 
 		if (data) {
-			currentData=data;
+			currentData = data;
 			chrome.browserAction.setIcon({
 				path : {
 					'19' : 'icon.png'
@@ -44,7 +34,7 @@ function refreshButtons(url) {
 				tabId : tabId
 			});
 		} else {
-			currentData=null;
+			currentData = null;
 			chrome.browserAction.setIcon({
 				path : {
 					'19' : 'icon-gray.png'
@@ -59,11 +49,11 @@ function refreshButtons(url) {
 		if (data && data.folder) {
 			divFolder.innerText = data.folder.title;
 			divFolder.setAttribute('title', data.path + ' : ' + data.index);
-			pagifyFolder.style.display='';
+			pagifyFolder.style.display = '';
 		} else {
 			divFolder.innerText = 'Not bookmarked';
 			divFolder.setAttribute('title', 'Current page not found in bookmarks');
-			pagifyFolder.style.display='none';
+			pagifyFolder.style.display = 'none';
 		}
 
 		if (data && data.prev) {
@@ -88,22 +78,21 @@ function refreshButtons(url) {
 	});
 }
 
-function pagifyHandler() {
-	chrome.runtime.getBackgroundPage(function(page) {
-		var data=currentData;
-		page.openPagify(data);
-	});
-}
-
 document.addEventListener('DOMContentLoaded', function () {
 	prevBookmarkButton = document.getElementById('prevBookmark');
 	nextBookmarkButton = document.getElementById('nextBookmark');
 	pagifyFolder = document.getElementById('pagifyFolder');
 	divFolder = document.getElementById('divFolder');
 
-	prevBookmarkButton.addEventListener('click', handler, false);
-	nextBookmarkButton.addEventListener('click', handler, false);
-	pagifyFolder.addEventListener('click', pagifyHandler, false);
+	prevBookmarkButton.addEventListener('click', function () {
+		navigate('prevBookmark');
+	}, false);
+	nextBookmarkButton.addEventListener('click', function () {
+		navigate('nextBookmark');
+	}, false);
+	pagifyFolder.addEventListener('click', pagify, false);
 
 	refresh();
 }, false);
+
+chrome.tabs.onUpdated.addListener(refresh);
