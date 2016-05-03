@@ -42,20 +42,22 @@ function refresh(fromremove) {
 		tabId = tab.id;
 		if (tab.url) {
 			refreshIconAndMenu(tab.url);
-			refreshPagify();
+			refreshPagify(tab.url);
 		}
 	});
 }
 
-function refreshPagify() {
-	var url = chrome.extension.getURL('pagify.html');
+function refreshPagify(url) {
+	var pagifyurl = chrome.extension.getURL('pagify.html');
+	if (url==pagifyurl) return;
 	chrome.tabs.query({
-		url : url + '*'
+		url : pagifyurl + '*',
+		
 	}, function (tabs) {
 		var tab = tabs[0];
 		if (!tab)
 			return;
-		chrome.tabs.sendMessage(tab.id, currentData);
+		chrome.tabs.sendMessage(tab.id, currentData||{});
 	});
 }
 
@@ -118,10 +120,17 @@ function refreshIconAndMenu(url) {
 	});
 }
 
+var history={};
+
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	refresh();
-	if (currentData && changeInfo && changeInfo.status == 'complete') {
-		currentData.notifications.forEach(notify);
+	if (changeInfo && changeInfo.status == 'complete') {
+		if (currentData && currentData.current && tab.url==currentData.current.url) {
+			currentData.notifications.forEach(notify);
+		}
+		if (currentData) {
+			history[tabId]=tab.url;
+		}
 	}
 });
 chrome.tabs.onCreated.addListener(refresh);
@@ -139,9 +148,9 @@ chrome.bookmarks.onChildrenReordered.addListener(refresh);
 chrome.bookmarks.onImportEnded.addListener(refresh);
 
 chrome.contextMenus.onClicked.addListener(function (info, tab) {
-	navigate(info.menuItemId, tab, currentData);
+	navigate(info.menuItemId, tab, currentData, history);
 });
 chrome.commands.onCommand.addListener(function (command) {
-	navigate(command, null, currentData);
+	navigate(command, null, currentData, history);
 });
 refresh();

@@ -31,9 +31,9 @@ function createTree(itm, level) {
 }
 
 function refresh(data) {
+	var tree = $('#tree').empty();
 	if (!data.folder)
 		return;
-	var tree = $('#tree').empty();
 	tree.append(createTree(data.folder, 1));
 	$('a', '#tree').each(function () {
 		if (sameUrls($(this).attr('href'), data.current.url)) {

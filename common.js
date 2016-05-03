@@ -10,38 +10,58 @@ function withCurrentTab(callback) {
 	});
 };
 
-function navigate(command, tab, currentData) {
+function navigate(command, tab, currentData, history) {
 	if (command == 'show') {
 		pagify();
 		return;
 	}
 	if (!tab) {
 		withCurrentTab(function (tab) {
-			navigate(command, tab, currentData);
+			navigate(command, tab, currentData, history);
 		});
 		return;
 	}
 	if (typeof(currentData) == 'undefined') {
 		chrome.bookmarks.getTree(function (tree) {
 			var data = getInfo(tab.url, tree);
-			navigate(command, tab, data);
+			navigate(command, tab, data, history);
 		});
 		return;
 	}
+
+	function checkHistory(key) {
+		if (!history) return;
+		var lastBookmarkedUrl=history[tab.id];
+		if (!lastBookmarkedUrl) return;
+		chrome.bookmarks.getTree(function (tree) {
+			var data = getInfo(lastBookmarkedUrl, tree);
+			if (!data||!data[key]) return;
+			if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+				chrome.tabs.update(tab.id, {
+					url : data[key].url
+				});
+			}
+		});
+	}
+
 	switch (command) {
 	case 'prevBookmark':
-		if (!currentData || !currentData.prev)
-			break;
-		chrome.tabs.update(tab.id, {
-			url : currentData.prev.url
-		});
+		if (!currentData || !currentData.prev) {
+			checkHistory('prev');
+		} else {
+			chrome.tabs.update(tab.id, {
+				url : currentData.prev.url
+			});
+		}
 		break;
 	case 'nextBookmark':
 		if (!currentData || !currentData.next)
-			break;
-		chrome.tabs.update(tab.id, {
-			url : currentData.next.url
-		});
+			checkHistory('next');
+		else {
+			chrome.tabs.update(tab.id, {
+				url : currentData.next.url
+			});
+		}
 		break;
 	}
 }
@@ -61,7 +81,19 @@ function notify(text) {
 	});
 }
 
+
 function getInfo(url, tree, path) {
+	var result = null;
+
+	function setResultOrNotify(r,itm) {
+		if (result) {
+			result.notifications.push(r.current.title + ' in ' + itm.title + ' (' + r.current.url + ') is a duplicate bookmark! Using the one in ' + result.folder.title + '@' + (result.index+1));
+		} else {
+			result = r;
+		}
+	}
+
+
 	if (tree.title) {
 		if (path) {
 			path += ' -> ' + tree.title;
@@ -69,18 +101,11 @@ function getInfo(url, tree, path) {
 			path = tree.title;
 		}
 	}
-	var result = null;
 	var arr = tree.children || tree;
 	arr.forEach(function (itm, idx) {
 		if (itm.children) {
 			var r = getInfo(url, itm, path);
-			if (r) {
-				if (result) {
-					result.notifications.push(r.current.title + ' in ' + itm.title + ' (' + r.current.url + ') is a duplicate bookmark! Using the one in ' + result.folder.title);
-				} else {
-					result = r;
-				}
-			}
+			if (r) setResultOrNotify(r,itm);
 		}
 		if (sameUrls(itm.url, url)) {
 			var prev = null;
@@ -97,7 +122,7 @@ function getInfo(url, tree, path) {
 					break;
 				}
 			}
-			result = {
+			setResultOrNotify({
 				folder : tree,
 				prev : prev,
 				current : itm,
@@ -105,7 +130,7 @@ function getInfo(url, tree, path) {
 				index : idx,
 				path : path,
 				notifications : []
-			};
+			},itm);
 		}
 	});
 	return result;
