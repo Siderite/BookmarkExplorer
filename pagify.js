@@ -14,6 +14,7 @@ function createTree(itm, level) {
 		if (itm.url) {
 			$('<a></a>')
 			.text(itm.title || itm.url)
+			.prepend($('<img/>').attr('src','chrome://favicon/'+itm.url))
 			.attr('href', itm.url || '#')
 			.attr('target', '_blank')
 			.appendTo(elem);
@@ -37,7 +38,7 @@ function refresh(data) {
 	tree.append(createTree(data.folder, 1));
 	$('a', '#tree').each(function () {
 		if (sameUrls($(this).attr('href'), data.current.url)) {
-			$(this).addClass('selected');
+			$(this).parent().addClass('selected');
 		}
 	});
 }
