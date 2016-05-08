@@ -1,0 +1,39 @@
+{
+	"manifest_version" : 2,
+
+	"name" : "Siderite's Bookmark Explorer",
+	"description" : "Navigate through an entire bookmark folder on the same page",
+	"version" : "2.0.0",
+
+	"permissions" : [
+		"tabs",
+		"activeTab",
+		"bookmarks",
+		"contextMenus",
+		"notifications",
+		"chrome://favicon/",
+		"storage"
+	],
+	"browser_action" : {
+		"default_icon" : "icon.png",
+		"default_popup" : "popup.html"
+	},
+	"background" : {
+		"scripts" : ["apiWrapper.js","bookmarkExplorer.js","background.js"],
+		"persistent" : false
+	},
+	"commands" : {
+		"prevBookmark" : {
+			"suggested_key" : {
+				"default" : "Ctrl+Shift+K"
+			},
+			"description" : "Navigate to previous bookmark in the folder"
+		},
+		"nextBookmark" : {
+			"suggested_key" : {
+				"default" : "Ctrl+Shift+L"
+			},
+			"description" : "Navigate to next bookmark in the folder"
+		}
+	}
+}

@@ -1,0 +1,29 @@
+#divFolder {
+	white-space: nowrap;
+    user-select: none;
+    -moz-user-select: none;
+	-khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+	margin-bottom:10px;
+}
+#divButtons {
+	min-width:70px;
+	display:flex;
+	flex-direction:row;
+	flex-wrap:nowrap;
+	justify-content:space-around;
+}
+button {
+	border: solid 1px black;
+}
+#divButtons button {
+	width:30px;
+}
+button[disabled=disabled], button:disabled {
+	opacity:0.1;
+}
+#pagifyFolder {
+    margin: 10px auto 0;
+    display: block;
+}
