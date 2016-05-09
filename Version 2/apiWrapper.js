@@ -178,7 +178,8 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.tabs.create({
-						url : url
+						url : url,
+						selected : true
 					}, resolve);
 				});
 			return promise;
@@ -341,9 +342,10 @@
 		sendMessage : function (tabId, data) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
+					var d=data||{};
 					var interval=setInterval(function() {
-						self.chr.tabs.sendMessage(tabId, data || {}, null, function() {
-							clearInterval(interval);
+						self.chr.tabs.sendMessage(tabId, d, null, function() {
+							setTimeout(function() { clearInterval(interval); },50);
 							resolve.apply(this,arguments);
 						});
 					});
