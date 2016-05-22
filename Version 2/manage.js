@@ -5,64 +5,16 @@
 	var chrome = global.testContext && global.testContext.chrome ? global.testContext.chrome : global.chrome;
 	var confirm = global.testContext && global.testContext.confirm ? global.testContext.confirm : global.confirm;
 
-	function createTree(itm, level, checkData) {
-		var elem = $('<div></div>');
-		if (itm.children) {
-			elem.append($('<h' + level + '></h' + level + '>')
-				.text(itm.title));
-			if (level > 1) {
-				elem.addClass('subtree');
-			} else {
-				elem.append($('<div id="divCounts"><span></span></div>'));
-			}
-			var ul = $('<ul></ul>').appendTo(elem);
-			itm.children.forEach(function (child) {
-				$('<li></li>')
-				.append(createTree(child, level + 1, checkData))
-				.appendTo(ul);
-			});
-		} else {
-			if (itm.url && level == 2) {
-				$('<a></a>')
-				.text(itm.title || itm.url)
-				.prepend($('<img/>').attr('src', ApiWrapper.getIconForUrl(itm.url)))
-				.attr('href', itm.url || '#')
-				.attr('target', '_blank')
-				.appendTo(elem);
-				var chk = $('<input />')
-					.attr('type', 'checkbox')
-					.val(itm.id)
-					.attr('title', 'Mark for delete')
-					.appendTo(elem);
-				chk.data('id', itm.id);
-				if (checkData && checkData[itm.id]) {
-					chk.prop('checked', true);
-				}
-				elem.click(function (ev) {
-					if (!chk.is(ev.target)) {
-						chk.click();
-					}
-				});
-			}
-		}
-		return elem;
-	}
-
-	function createEmpty() {
-		var elem = $('<div></div>');
-		elem.append($('<h1></h1>').text('Bookmark for the URL not found'));
-		$('<h4></h4>').text('Move to a tab that has been bookmarked to populate this page.').appendTo(elem);
-		return elem;
-	}
-
 	var currentData;
 
 	$(function () {
 
 		var api = new ApiWrapper(chrome);
-		var container = $('body', context);
-		var tree = $('#tree', context);
-		var buttons = $('#buttons', context);
+		var header = $('#divHeader', context);
+		var subheader = $('#divSubheader', context);
+		var counts = $('#divCounts', context);
+		var tree = $('#divTree', context);
+		var buttons = $('#divButtons', context);
 		var btnToggleAll = $('#btnToggleAll', context);
 		var btnToggleBefore = $('#btnToggleBefore', context);
 		var btnRemove = $('#btnRemove', context);
@@ -80,7 +32,7 @@
 		});
 
 		$(context).on('keyup', function (e) {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var index = ul.find('>li:has(div.current)').index();
 			if (index < 0) index=0;
 			switch (e.which) {
@@ -131,7 +83,8 @@
 			tree.empty();
 			btnRemove.hide();
 			if (!data || !data.folder) {
-				tree.append(createEmpty());
+				header.text('Bookmark for the URL not found');
+				subheader.text('Move to a tab that has been bookmarked to populate this page.');
 				btnToggleAll.hide();
 				btnToggleBefore.hide();
 				btnUndo.hide();
@@ -139,7 +92,9 @@
 			}
 			btnToggleAll.show();
 			btnToggleBefore.show();
-			tree.append(createTree(data.folder, 1, checkData));
+			header.text(data.folder.title);
+			subheader.empty();
+			createTree(data.folder, checkData);
 			tree.find('input[type=checkbox]').click(refreshbtnRemove);
 			tree.find('a').each(function () {
 				if (ApiWrapper.sameUrls($(this).attr('href'), data.current.url) < 2)
@@ -152,8 +107,50 @@
 			refreshCounts();
 		}
 
+	function createTree(folder, checkData) {
+		var ul = $('<ul></ul>').appendTo(tree);
+		folder.children.forEach(function (child) {
+			$('<li></li>')
+			.append(createItem(child, checkData))
+			.appendTo(ul);
+		});
+	}
+
+	function createItem(itm,checkData) {
+		var elem=$('<div></div>');
+		if (itm.url) {
+			$('<a></a>')
+			.text(itm.title || itm.url)
+			.prepend($('<img/>').attr('src', ApiWrapper.getIconForUrl(itm.url)))
+			.attr('href', itm.url || '#')
+			.attr('target', '_blank')
+			.appendTo(elem);
+			var chk = $('<input />')
+				.attr('type', 'checkbox')
+				.val(itm.id)
+				.attr('title', 'Mark for delete')
+				.appendTo(elem);
+			chk.data('id', itm.id);
+			if (checkData && checkData[itm.id]) {
+				chk.prop('checked', true);
+			}
+			elem.click(function (ev) {
+				if (!chk.is(ev.target)) {
+					chk.click();
+				}
+			});
+		} else {
+			$('<span></span>')
+			.addClass('subfolder')
+			.text(itm.title)
+			.prepend($('<img/>').attr('src', 'folder.png'))
+			.appendTo(elem);
+		}
+		return elem;
+	}
+
 		function bringSelectedIntoView() {
-			var bottom = $(window).height()-buttons.height();
+			var bottom = tree.height();
 			var minTop = null;
 			var maxTop = null;
 			tree.find('div.selected').each(function () {
@@ -166,7 +163,7 @@
 			if (minTop && maxTop) {
 				var y = (minTop + maxTop) / 2;
 				if (y >= bottom) {
-					container.animate({
+					tree.animate({
 						scrollTop : y - bottom / 2
 					});
 				}
@@ -174,49 +171,47 @@
 		}
 
 		function bringCurrentIntoView() {
-			var bottom = $(window).height()-buttons.height();
+			var height = tree.height();
 			var current = tree.find('div.current');
-			var minTop=current.offset().top;
-			var maxTop=minTop+current.height();
-			if (minTop && maxTop) {
-				var y = (minTop + maxTop) / 2;
-				container.clearQueue().animate({
-					scrollTop : y - bottom / 2
+			var top=tree.scrollTop()+current.position().top;
+			if (top) {
+				tree.clearQueue().animate({
+					scrollTop : top-height/2
 				});
 			}
 		}
 
 		function refreshbtnRemove() {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var checkedInputs = ul.find('input:checked');
 			btnRemove.toggle(!!checkedInputs.length);
 			refreshCounts();
 		}
 
 		function refreshCounts() {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var inputs = ul.find('input');
 			var checkedInputs = ul.find('input:checked');
-			tree.find('#divCounts span').text(inputs.length
+			counts.find('span').text(inputs.length
 				 ? checkedInputs.length + '/' + inputs.length
 				 : '');
 		}
 
 		btnToggleAll.click(function () {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var val = ul.find('>li>div>input:checked').length < ul.find('>li>div>input:not(:checked)').length;
 			ul.find('>li>div>input').prop('checked', val);
 			refreshbtnRemove();
 		});
 		btnToggleBefore.click(function () {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var index = ul.find('>li:has(div.selected)').index();
 			var val = ul.find('>li>div>input:lt(' + index + '):checked').length < ul.find('>li>div>input:lt(' + index + '):not(:checked)').length;
 			ul.find('>li>div>input:lt(' + index + ')').prop('checked', val);
 			refreshbtnRemove();
 		});
 		btnRemove.click(function () {
-			var ul = tree.find('>div>ul');
+			var ul = tree.find('>ul');
 			var inputs = ul.find('input:checked');
 			if (!inputs.length)
 				return;

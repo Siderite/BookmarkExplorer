@@ -11,15 +11,16 @@ QUnit.test("Manage script", function (assert) {
 	(function () {
 		var global = this;
 		global.testContext = {};
-		global.testContext.document = $('<div>' +
-				'<div id="tree"></div>' +
-				'<div id="buttons">' +
-				'<button id="btnToggleAll">Toggle All</button>' +
-				'<button id="btnToggleBefore">Toggle Before Current</button>' +
-				'<button id="btnRemove">Delete All Selected</button>' +
-				'<button id="btnUndo">Undo Last Bookmark Delete</button>' +
-				'</div>' +
-				'</div>');
+		global.testContext.document = $('<section><div id="divHeader"></div>' +
+				'<div id="divSubheader"></div>' +
+				'<div id="divCounts"><span></span></div>' +
+				'<div id="divTree"></div>' +
+				'<div id="divButtons">' +
+				'	<button id="btnToggleAll">Toggle All</button>' +
+				'	<button id="btnToggleBefore">Toggle Before Current</button>' +
+				'	<button id="btnRemove">Delete Selected</button>' +
+				'	<button id="btnUndo">Undo Last Bookmark Delete</button>' +
+				'</div></section>');
 		function contextReset() {
 			global.testContext.tree = [];
 			global.testContext.localData = null;
@@ -90,8 +91,8 @@ QUnit.test("Manage script", function (assert) {
 			assert.equal($('#btnToggleBefore', tc).css('display') == 'none', true, "Initial load with no data hides ToggleBefore button");
 			assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Initial load with no data hides Remove button");
 			assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Initial load with no deleted bookmarks hides Undo button");
-			assert.equal($('#tree>div>h1', tc).text(), 'Bookmark for the URL not found', "Initial load with no deleted bookmarks populates title");
-			assert.equal($('#tree>div>h4', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Initial load with no deleted bookmarks populates subtitle");
+			assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Initial load with no deleted bookmarks populates title");
+			assert.equal($('#divSubheader', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Initial load with no deleted bookmarks populates subtitle");
 
 			var data = {
 				"current" : {
@@ -134,9 +135,9 @@ QUnit.test("Manage script", function (assert) {
 				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
 				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
 				assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Refresh with data, but no deleted bookmarks hides Undo button");
-				assert.equal($('#tree>div>h1', tc).text(), 'title 1', "Refresh with data shows correct title");
-				assert.equal($('#tree ul li', tc).length, 3, "Refresh with data shows correct number of items");
-				$('#tree ul li', tc).each(function (idx) {
+				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
+				assert.equal($('#divTree ul li', tc).length, 3, "Refresh with data shows correct number of items");
+				$('#divTree ul li', tc).each(function (idx) {
 					assert.ok($(this).html().includes(data.folder.children[idx].url), "item " + (idx + 1) + " contains the correct url");
 					assert.ok($(this).text().includes(data.folder.children[idx].title), "item " + (idx + 1) + " contains the correct title");
 				});
@@ -149,8 +150,8 @@ QUnit.test("Manage script", function (assert) {
 				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', true, "Refresh with no data hides ToggleBefore button");
 				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with no data hides Remove button");
 				assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Refresh with no deleted bookmarks hides Undo button");
-				assert.equal($('#tree>div>h1', tc).text(), 'Bookmark for the URL not found', "Refresh with no deleted bookmarks populates title");
-				assert.equal($('#tree>div>h4', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Refresh with no deleted bookmarks populates subtitle");
+				assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Refresh with no deleted bookmarks populates title");
+				assert.equal($('#divSubheader', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Refresh with no deleted bookmarks populates subtitle");
 
 				contextReset();
 				global.testContext.localData = {
@@ -171,9 +172,9 @@ QUnit.test("Manage script", function (assert) {
 				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
 				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
 				assert.equal($('#btnUndo', tc).css('display') == 'none', false, "Refresh with data, and deleted bookmarks shows Undo button");
-				assert.equal($('#tree>div>h1', tc).text(), 'title 1', "Refresh with data shows correct title");
-				assert.equal($('#tree ul li', tc).length, 3, "Refresh with data shows correct number of items");
-				$('#tree ul li', tc).each(function (idx) {
+				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
+				assert.equal($('#divTree ul li', tc).length, 3, "Refresh with data shows correct number of items");
+				$('#divTree ul li', tc).each(function (idx) {
 					assert.ok($(this).html().includes(data.folder.children[idx].url), "item " + (idx + 1) + " contains the correct url");
 					assert.ok($(this).text().includes(data.folder.children[idx].title), "item " + (idx + 1) + " contains the correct title");
 				});
@@ -240,7 +241,7 @@ QUnit.test("Manage script", function (assert) {
 					],
 					"title" : "title 1"
 				};
-				$('#tree ul li input', tc).eq(1).click();
+				$('#divTree ul li input', tc).eq(1).click();
 
 				assert.equal($('#btnRemove', tc).css('display') == 'none', false, "Clicking on a checkbox shows btnRemove");
 				$('#btnRemove', tc).click();
@@ -264,7 +265,7 @@ QUnit.test("Manage script", function (assert) {
 				$('#btnToggleAll', tc).click();
 
 			}, function () {
-				var inputs = $('#tree input', tc);
+				var inputs = $('#divTree input', tc);
 				var x = [];
 				inputs.each(function (idx) {
 					if ($(this).is(':checked')) {
@@ -278,7 +279,7 @@ QUnit.test("Manage script", function (assert) {
 				$('#btnToggleBefore', tc).click();
 
 			}, function () {
-				var inputs = $('#tree input', tc);
+				var inputs = $('#divTree input', tc);
 				var x = [];
 				inputs.each(function (idx) {
 					if ($(this).is(':checked')) {

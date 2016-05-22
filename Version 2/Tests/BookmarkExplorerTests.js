@@ -381,6 +381,9 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 	var tree = [];
 
 	var api = {
+		getExtensionUrl : function (url) {
+			return 'ext:' + url;
+		},
 		setIcon : function (tabId, icon) {
 			api.setIconCalls.push(arguments);
 			return new Promise(function (resolve, reject) {

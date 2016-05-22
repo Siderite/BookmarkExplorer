@@ -1,26 +1,73 @@
 html,body {
 	margin:0;
 	padding:0;
+	overflow:hidden;
+	display:flex;
+	flex-direction:column;
+	height:100%;
 }
-.subtree {
-	opacity:0.3;
+#divHeader,#divSubheader {
+    width: 100%;
+    background: #eeeeee;
+	margin:0;
+	padding:0.4rem;
+	flex-grow: 0;
+	flex-shrink: 1;
+	flex-basis: auto;
 }
-ul {
+#divHeader {
+    font-size: 1.5rem;
+    font-weight: bold;
+	flex-grow: 0;
+	flex-shrink: 1;
+	flex-basis: auto;
+}
+#divSubheader {
+    font-size: 1.1rem;
+	flex-grow: 0;
+	flex-shrink: 1;
+	flex-basis: auto;
+}
+#divCounts {
+	margin-bottom:-0.7rem;
+	background-color:white;
+	z-index:1;
+	flex-grow: 0;
+	flex-shrink: 1;
+	flex-basis: auto;
+}
+#divCounts span {
+	float:right;
+	font-size:smaller;
+	margin-right:2rem;
+}
+#divTree {
+	flex-grow: 1;
+	flex-shrink: 1;
+	flex-basis: auto;
+	overflow-y:auto;
+	position:relative;
+}
+#divTree ul {
 	list-style-type:none;
 }
-li div {
+#divTree li div {
 	clear:both;
 }
-li input {
+#divTree li input {
 	float:right;
-	margin-right:1.5em;
-	height:1.5em;
+	margin-right:1.2rem;
+	height:1.2rem;
 }
-li:hover {
+#divTree li:hover {
 	background:#E0E0F0;
 }
-a {
-	line-height:2em;
+span.subfolder {
+	opacity:0.6;
+	font-weight:bold;
+}
+a,span.subfolder {
+	line-height:1.5rem;
 }
 div.selected {
 	background:#D0D0F0;
@@ -28,43 +75,22 @@ div.selected {
 div.current {
 	border:1px dotted black;
 }
-a img {
+a>img,
+span>img {
 	vertical-align:middle;
 	margin-right:10px;
 }
-#tree {
-	padding-bottom:3em;
-}
-#buttons {
-	position:fixed;
+#divButtons {
 	bottom:0px;
 	background:#eeeeee;
     width: 100%;
-	height: 2em;
-    padding: 0.75em 0em;
+	height: 1.5rem;
+    padding: 0.75rem 0rem;
 }
 #btnToggleAll {
-	margin-left:2.25em;
+	margin-left:2.25rem;
 }
 #btnUndo {
-	margin-right:2.25em;
+	margin-right:2.25rem;
 	float:right;
-}
-#tree>div {
-    padding-top: 4.25em;
-}
-#tree>div>h1 {
-    position: fixed;
-    top: 0px;
-    width: 100%;
-    background: #eeeeee;
-	margin:0;
-	padding:0.4em;
-}
-#divCounts {
-}
-#divCounts span {
-	float:right;
-	font-size:smaller;
-	margin-right:2em;
 }
