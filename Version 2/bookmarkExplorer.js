@@ -105,6 +105,7 @@
 		},
 		refreshIconAndMenu : function (currentTab) {
 			var self = this;
+			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.getInfo(currentTab.url).then(function (data) {
 				self.api.createMenuItem('manage', 'Manage bookmark folder');
 				self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
@@ -123,9 +124,10 @@
 		execute : function (command) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
-				if (command == 'manage') {
-					self.openManage(tab.url);
-					return;
+				switch (command) {
+					case 'manage':
+						self.openManage(tab.url);
+						return;
 				}
 				self.getInfo(tab.url).then(function (data) {
 					switch (command) {
@@ -160,7 +162,6 @@
 						}
 						break;
 					}
-
 				});
 			});
 		},

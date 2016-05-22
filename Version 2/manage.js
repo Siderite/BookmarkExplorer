@@ -5,16 +5,18 @@
 	var chrome = global.testContext && global.testContext.chrome? global.testContext.chrome : global.chrome;
 	var confirm=global.testContext &&global.testContext.confirm ? global.testContext.confirm : global.confirm;
 
-	function createTree(itm, level) {
+	function createTree(itm, level, checkData) {
 		var elem = $('<div></div>');
 		if (itm.children) {
 			if (level > 1)
 				elem.addClass('subtree');
-			elem.append($('<h' + level + '></h' + level + '>').text(itm.title));
+			elem.append($('<h' + level + '></h' + level + '>')
+				.text(itm.title))
+				.append($('<div id="divCounts"><span></span></div>'));
 			var ul = $('<ul></ul>').appendTo(elem);
 			itm.children.forEach(function (child) {
 				$('<li></li>')
-				.append(createTree(child, level + 1))
+				.append(createTree(child, level + 1, checkData))
 				.appendTo(ul);
 			});
 		} else
@@ -25,17 +27,22 @@
 				.attr('href', itm.url || '#')
 				.attr('target', '_blank')
 				.appendTo(elem);
-				var chk = $('<input />')
-					.attr('type', 'checkbox')
-					.val(itm.id)
-					.attr('title', 'Mark for delete');
-				if (level == 2)
-					chk.appendTo(elem);
-				elem.click(function (ev) {
-					if (!chk.is(ev.target)) {
-						chk.click();
+				if (level == 2) {
+					var chk = $('<input />')
+						.attr('type', 'checkbox')
+						.val(itm.id)
+						.attr('title', 'Mark for delete')
+						.appendTo(elem);
+					chk.data('id',itm.id);
+					if (checkData&&checkData[itm.id]) {
+						chk.prop('checked',true);
 					}
-				});
+					elem.click(function (ev) {
+						if (!chk.is(ev.target)) {
+							chk.click();
+						}
+					});
+				}
 			}
 		return elem;
 	}
@@ -60,6 +67,30 @@
 		var btnRemove = $('#btnRemove', context);
 		var btnUndo = $('#btnUndo', context);
 
+		$(context).on('keyup',function(e) {
+			var ul = tree.find('>div>ul');
+			var index = ul.find('>li:has(div.selected)').index();
+			if (index<0) return;
+			switch(e.which) {
+				case 38: //Up
+					if (index-1>=0) {
+						ul.find('>li>div').eq(index).removeClass('selected');
+						ul.find('>li>div').eq(index-1).addClass('selected');
+					}
+					break;
+				case 40: //Down
+					var total=ul.find('>li').length;
+					if (index+1<total) {
+						ul.find('>li>div').eq(index).removeClass('selected');
+						ul.find('>li>div').eq(index+1).addClass('selected');
+					}
+					break;
+				case 32: //Space
+					ul.find('>li').eq(index).find('input[type=checkbox]').click();
+					break;
+			}
+		});
+
 		api.onMessage(refresh);
 
 		function refresh(data) {
@@ -71,6 +102,14 @@
 				}
 			});
 
+			var checkData={};
+			tree.find('input[type=checkbox]').each(function() {
+				var id=$(this).data('id');
+				if (id) {
+					var checked=$(this).prop('checked');
+					checkData[id]=checked;
+				}
+			});
 			currentData = data;
 			tree.empty();
 			btnRemove.hide();
@@ -84,7 +123,7 @@
 			btnToggleAll.show();
 			btnToggleBefore.show();
 			var bottom = buttons.offset().top;
-			tree.append(createTree(data.folder, 1));
+			tree.append(createTree(data.folder, 1,checkData));
 			tree.find('input').click(refreshbtnRemove);
 			var minTop = null;
 			var maxTop = null;
@@ -102,18 +141,29 @@
 			if (minTop && maxTop) {
 				var y = (minTop + maxTop) / 2;
 				if (y >= bottom) {
-					console.log('scrolling:',y - bottom / 2,y,bottom);
 					container.animate({
 						scrollTop : y - bottom / 2
 					});
 				}
 			}
+			refreshCounts();
 		}
 
 		function refreshbtnRemove() {
 			var ul = tree.find('>div>ul');
-			var inputs = ul.find('input:checked');
-			btnRemove.toggle(!!inputs.length);
+			var checkedInputs = ul.find('input:checked');
+			btnRemove.toggle(!!checkedInputs.length);
+			refreshCounts();
+		}
+
+		function refreshCounts() {
+			var ul = tree.find('>div>ul');
+			var inputs = ul.find('input');
+			var checkedInputs = ul.find('input:checked');
+			tree.find('#divCounts span').text(inputs.length
+				? checkedInputs.length+'/'+inputs.length
+				: ''
+			);
 		}
 
 		btnToggleAll.click(function () {
