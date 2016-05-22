@@ -25,6 +25,9 @@ a {
 div.selected {
 	background:#D0D0F0;
 }
+div.current {
+	border:1px dotted black;
+}
 a img {
 	vertical-align:middle;
 	margin-right:10px;
