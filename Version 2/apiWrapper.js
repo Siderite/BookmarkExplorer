@@ -303,14 +303,16 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					var nodes = [];
+					var k=bms.length;
 					bms.forEach(function (bm) {
 						delete bm.dateAdded;
 						delete bm.id;
 						self.chr.bookmarks.create(bm, function (node) {
 							nodes.push(node);
+							k--;
+							if (k==0) resolve(withArray ? nodes : nodes[0]);
 						});
 					});
-					resolve(withArray ? nodes : nodes[0]);
 				});
 			return promise;
 		},

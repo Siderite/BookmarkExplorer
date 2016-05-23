@@ -3,12 +3,13 @@
   <head>
     <title>Siderite's Bookmark Explorer</title>
 	<script src="jquery-2.2.2.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
 	<script src="ApiWrapper.js"></script>
 	<script src="manage.js"></script>
 	<link rel="stylesheet" type="text/css" href="manage.css" media="all">
   </head>
   <body>
-	<div id="divHeader"></div>
+	<div id="divHeader"><span></span><img src="menu.png"/></div>
 	<div id="divSubheader"></div>
 	<div id="divCounts"><span></span></div>
 	<div id="divTree"></div>
@@ -17,6 +18,17 @@
 		<button id="btnToggleBefore">Toggle Before Current</button>
 		<button id="btnRemove">Delete Selected</button>
 		<button id="btnUndo">Undo Last Bookmark Delete</button>
+	</div>
+	<ul id="ulMenu">
+		<li data-command="copy">Copy URLs to clipboard</li>
+		<li data-command="paste">Paste URLs from clipboard</li>
+	</ul>
+	<div id="divCopyPaste">
+		<textarea></textarea>
+		<div class="buttons">
+			<button id="btnClose">Close</button>
+			<button id="btnOK">OK</button>
+		</div>
 	</div>
   </body>
 </html>
