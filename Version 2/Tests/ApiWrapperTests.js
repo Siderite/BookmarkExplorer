@@ -1196,14 +1196,14 @@ QUnit.test("ApiWrapper onMessage", function (assert) {
 	var api = new ApiWrapper(chrome);
 	var listener = function () {};
 	var handler = api.onMessage(listener);
-	assert.equal(chrome.listener, listener, "ApiWrapper onMessage received the provided listener");
+	assert.notEqual(chrome.listener, listener, "ApiWrapper onMessage received a function that is not the provided listener");
 	assert.ok(handler && typeof(handler) == 'object', "ApiWrapper onMessage returns an object");
 	assert.equal(handler.disposed, false, "ApiWrapper onMessage returned object is not disposed");
 	assert.equal(handler.eventRoot, chrome.runtime.onMessage, "ApiWrapper onMessage returned object has a reference to onCreated");
-	assert.equal(handler.listener, listener, "ApiWrapper onMessage returned object has a reference to the provided listener");
+	assert.equal(handler.listener, chrome.listener, "ApiWrapper onMessage returned object has a reference to the returned listener");
 	handler.remove();
 	assert.equal(handler.disposed, true, "ApiWrapper onMessage returned object is disposed on remove");
-	assert.equal(chrome.removedListener, listener, "ApiWrapper onMessage returned object has removed the provided listener");
+	assert.equal(chrome.removedListener, chrome.listener, "ApiWrapper onMessage returned object has removed the returned listener");
 });
 
 QUnit.test("ApiWrapper onCommand", function (assert) {

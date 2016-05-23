@@ -346,11 +346,12 @@
 			var promise = new Promise(function (resolve, reject) {
 					var d=data||{};
 					var interval=setInterval(function() {
-						self.chr.tabs.sendMessage(tabId, d, null, function() {
+						self.chr.tabs.sendMessage(tabId, d, null, function(val) {
+							if (!val) return;
 							setTimeout(function() { clearInterval(interval); },50);
 							resolve.apply(this,arguments);
 						});
-					});
+					},100);
 				});
 			return promise;
 		},
@@ -472,7 +473,11 @@
 			return handler;
 		},
 		onMessage : function (listener) {
-			var eh = new EventHandler(this.chr.runtime.onMessage, listener);
+			var eh = new EventHandler(this.chr.runtime.onMessage, function(request,sender,sendResponse) {
+				var result=listener(request);
+				if (typeof(sendResponse)=='function') sendResponse({ result: result });
+				return true;
+			});
 			this.handlers.push(eh);
 			return eh;
 		},
