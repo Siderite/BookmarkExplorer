@@ -10,6 +10,12 @@
     	$(function () {
 
     		var api = new ApiWrapper(chrome);
+
+		api.getBackgroundPage().then(function (bgPage) {
+
+			var app = bgPage.app;
+
+
     		var header = $('#divHeader span', context);
     		var menuImg = $('#divHeader img', context);
     		var subheader = $('#divSubheader', context);
@@ -21,6 +27,42 @@
     		var liRemoveBookmarks = $('[data-command=delete]', menu);
     		var liUndo = $('[data-command=restore]', menu);
     		var copyPaste = $('#divCopyPaste', context);
+
+			var Bookmarks={
+				key:'lastDeletedBookmarks',
+				get:function () {
+					return new Promise(function(resolve,reject) {
+    					api.getData(Bookmarks.key).then(function (arr) {
+							if (!arr||!arr.bookmarks||!arr.bookmarks.length) {
+								resolve(null);
+							} else {
+								resolve(arr.bookmarks[arr.bookmarks.length-1]);
+							}
+						});
+					});
+				},
+				add:function(bookmarks) {
+					return new Promise(function(resolve,reject) {
+    					api.getData(Bookmarks.key).then(function (arr) {
+							if (!arr||!arr.bookmarks||!arr.bookmarks.length) arr={ bookmarks:[] };
+							arr.bookmarks.push(bookmarks);
+    						api.setData(Bookmarks.key, arr).then(resolve);
+						});
+					});
+				},
+				remove:function () {
+					return new Promise(function(resolve,reject) {
+    					api.getData(Bookmarks.key).then(function (arr) {
+							if (!arr||!arr.bookmarks||!arr.bookmarks.length) {
+								resolve(null);
+								return;
+							}
+							arr.bookmarks.splice(arr.bookmarks.length-1,1);
+    						api.setData(Bookmarks.key, arr).then(resolve);
+						});
+					});
+				}
+			};
 
     		$(context).on('keydown', function (e) {
     			if (menu.is(':visible') || copyPaste.is(':visible'))
@@ -76,6 +118,14 @@
 
     		api.onMessage(refresh);
 
+			function refreshFromCurrent() {
+										if (!currentData||!currentData.current) {
+											refresh();
+										} else {
+											app.getInfo(currentData.current.url).then(refresh);
+										}
+			}
+
     		function refresh(data) {
     			var checkData = {};
     			tree.find('input[type=checkbox]').each(function () {
@@ -93,7 +143,6 @@
     				subheader.text('Move to a tab that has been bookmarked to populate this page.');
     				liToggleAll.hide();
     				liToggleBefore.hide();
-    				liUndo.hide();
     				refreshMenuOptions();
     				return;
     			}
@@ -197,7 +246,7 @@
     			var checkedInputs = ul.find('input:checked');
     			liRemoveBookmarks.toggle(!!checkedInputs.length);
 
-    			api.getData('lastDeletedBookmarks').then(function (bookmarks) {
+				Bookmarks.get().then(function (bookmarks) {
     				if (bookmarks) {
     					liUndo.text('Restore ' + bookmarks.length + ' bookmarks').show();
     				} else {
@@ -396,7 +445,7 @@
     			api.getBookmarksByIds(ids.map(function (p) {
     					return p.id;
     				})).then(function (bookmarks) {
-    				api.setData('lastDeletedBookmarks', bookmarks).then(function () {
+    				Bookmarks.add(bookmarks).then(function () {
 						var k=ids.length;
     					ids.forEach(function (p) {
     						api.removeBookmarksById([p.id]).then(function () {
@@ -410,7 +459,7 @@
     		}
 
 			function restoreBookmarks() {
-    			api.getData('lastDeletedBookmarks').then(function (bookmarks) {
+    			Bookmarks.get().then(function (bookmarks) {
     				if (!confirm('Are you sure you want to restore ' + bookmarks.length + ' bookmarks?'))
     					return;
     				var parentIds = {};
@@ -434,19 +483,13 @@
     								});
     								api.createBookmarks(bookmarks);
     								api.notify('Bookmarks restored');
-    								api.removeData('lastDeletedBookmarks').then(function () {
-    									liUndo.hide();
-    									refresh(currentData);
-    								});
+    								Bookmarks.remove().then(refreshFromCurrent);
     							});
     						});
     					} else {
     						api.createBookmarks(bookmarks).then(function () {
     							api.notify('Bookmarks restored');
-    							api.removeData('lastDeletedBookmarks').then(function () {
-    								liUndo.hide();
-    								refresh(currentData);
-    							});
+    							Bookmarks.remove().then(refreshFromCurrent);
     						});
     					}
     				});
@@ -454,6 +497,7 @@
     		}
     		refresh();
 
+			});
     	});
 
     })(jQuery);

@@ -11,20 +11,26 @@ QUnit.test("Manage script", function (assert) {
 	(function () {
 		var global = this;
 		global.testContext = {};
-		global.testContext.document = $('<section><div id="divHeader"></div>' +
+		global.testContext.document = $('<section><div id="divHeader"><span></span><img/></div>' +
 				'<div id="divSubheader"></div>' +
 				'<div id="divCounts"><span></span></div>' +
 				'<div id="divTree"></div>' +
-				'<div id="divButtons">' +
-				'	<button id="btnToggleAll">Toggle All</button>' +
-				'	<button id="btnToggleBefore">Toggle Before Current</button>' +
-				'	<button id="btnRemove">Delete Selected</button>' +
-				'	<button id="btnUndo">Undo Last Bookmark Delete</button>' +
-				'</div></section>');
+				'<ul id="ulMenu">' +
+				'	<li class="ui-widget-header">Items</li>' +
+				'	<li data-command="toggleAll">Toggle all</li>' +
+				'	<li data-command="toggleBefore">Toggle all before current</li>' +
+				'	<li class="ui-widget-header">Actions</li>' +
+				'	<li data-command="delete">Delete selected</li>' +
+				'	<li data-command="restore">Restore deleted</li>' +
+				'	<li class="ui-widget-header">Import/Export</li>' +
+				'	<li data-command="copy">Copy URLs to clipboard</li>' +
+				'	<li data-command="paste">Import URLs from clipboard</li>' +
+				'</ul></section>');
 		function contextReset() {
 			global.testContext.tree = [];
+			global.testContext.currentData = null;
 			global.testContext.localData = null;
-			global.testContext.storageRemove = [];
+			//global.testContext.storageRemove = [];
 			global.testContext.storageGet = [];
 			global.testContext.storageSet = [];
 			global.testContext.getTreeCalled = 0;
@@ -37,8 +43,17 @@ QUnit.test("Manage script", function (assert) {
 			runtime : {
 				onMessage : {
 					addListener : function (listener) {
-						messageListener = listener;
+						global.testContext.messageListener = listener;
 					}
+				},
+				getBackgroundPage : function (callback) {
+					callback({
+						app : {
+							getInfo : function () {
+								return Promise.resolve(global.testContext.currentData);
+							}
+						}
+					});
 				}
 			},
 			storage : {
@@ -50,11 +65,12 @@ QUnit.test("Manage script", function (assert) {
 					set : function (values, callback) {
 						global.testContext.storageSet.push(values);
 						callback(global.testContext.localData);
-					},
-					remove : function (key, callback) {
-						global.testContext.storageRemove.push(key);
-						callback({});
 					}
+					/*,
+					remove : function (key, callback) {
+					global.testContext.storageRemove.push(key);
+					callback({});
+					}*/
 				}
 			},
 			bookmarks : {
@@ -85,12 +101,15 @@ QUnit.test("Manage script", function (assert) {
 		var tc = global.testContext.document;
 		var scr = $('<script></script>');
 		scr.on('load', function () {
-			assert.ok(messageListener && typeof(messageListener) == 'function', "Initial load binds a listener to onMessage");
 
-			assert.equal($('#btnToggleAll', tc).css('display') == 'none', true, "Initial load with no data hides ToggleAll button");
-			assert.equal($('#btnToggleBefore', tc).css('display') == 'none', true, "Initial load with no data hides ToggleBefore button");
-			assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Initial load with no data hides Remove button");
-			assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Initial load with no deleted bookmarks hides Undo button");
+			$('#divHeader img', tc).click(); // initialize menu
+
+			assert.ok(global.testContext.messageListener && typeof(global.testContext.messageListener) == 'function', "Initial load binds a listener to onMessage");
+
+			assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', true, "Initial load with no data hides ToggleAll button");
+			assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', true, "Initial load with no data hides ToggleBefore button");
+			assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Initial load with no data hides Remove button");
+			assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Initial load with no deleted bookmarks hides Undo button");
 			assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Initial load with no deleted bookmarks populates title");
 			assert.equal($('#divSubheader', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Initial load with no deleted bookmarks populates subtitle");
 
@@ -128,13 +147,13 @@ QUnit.test("Manage script", function (assert) {
 					"url" : "not test url"
 				}
 			};
-			messageListener(data);
+			global.testContext.messageListener(data);
 
 			stringFunctions(function () {
-				assert.equal($('#btnToggleAll', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
-				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
-				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
-				assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Refresh with data, but no deleted bookmarks hides Undo button");
+				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
+				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
+				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
+				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Refresh with data, but no deleted bookmarks hides Undo button");
 				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
 				assert.equal($('#divTree ul li', tc).length, 3, "Refresh with data shows correct number of items");
 				$('#divTree ul li', tc).each(function (idx) {
@@ -143,35 +162,37 @@ QUnit.test("Manage script", function (assert) {
 				});
 
 				contextReset();
-				messageListener(null);
+				global.testContext.messageListener(null);
 			}, function () {
 
-				assert.equal($('#btnToggleAll', tc).css('display') == 'none', true, "Refresh with no data hides ToggleAll button");
-				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', true, "Refresh with no data hides ToggleBefore button");
-				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with no data hides Remove button");
-				assert.equal($('#btnUndo', tc).css('display') == 'none', true, "Refresh with no deleted bookmarks hides Undo button");
+				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', true, "Refresh with no data hides ToggleAll button");
+				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', true, "Refresh with no data hides ToggleBefore button");
+				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with no data hides Remove button");
+				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Refresh with no deleted bookmarks hides Undo button");
 				assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Refresh with no deleted bookmarks populates title");
 				assert.equal($('#divSubheader', tc).text(), 'Move to a tab that has been bookmarked to populate this page.', "Refresh with no deleted bookmarks populates subtitle");
 
 				contextReset();
 				global.testContext.localData = {
-					"lastDeletedBookmarks" : [{
-							parentId : "test parent id",
-							url : "test deleted url"
-						}
-					]
+					"lastDeletedBookmarks" : {
+						bookmarks : [[{
+									parentId : "test parent id",
+									url : "test deleted url"
+								}
+							]]
+					}
 				};
-				messageListener(data);
+				global.testContext.messageListener(data);
 
 			}, function () {
 
 				assert.deepEqual(global.testContext.storageGet, [
 						"lastDeletedBookmarks",
 					], "Refresh with data reads storage for 'lastDeletedBookmarks'");
-				assert.equal($('#btnToggleAll', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
-				assert.equal($('#btnToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
-				assert.equal($('#btnRemove', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
-				assert.equal($('#btnUndo', tc).css('display') == 'none', false, "Refresh with data, and deleted bookmarks shows Undo button");
+				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
+				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
+				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
+				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', false, "Refresh with data, and deleted bookmarks shows Undo button");
 				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
 				assert.equal($('#divTree ul li', tc).length, 3, "Refresh with data shows correct number of items");
 				$('#divTree ul li', tc).each(function (idx) {
@@ -181,11 +202,13 @@ QUnit.test("Manage script", function (assert) {
 
 				contextReset();
 				global.testContext.localData = {
-					"lastDeletedBookmarks" : [{
-							parentId : "test parent id",
-							url : "test deleted url"
-						}
-					]
+					"lastDeletedBookmarks" : {
+						bookmarks : [[{
+									parentId : "test parent id",
+									url : "test deleted url"
+								}
+							]]
+					}
 				};
 				global.testContext.tree = [{
 						children : [{
@@ -194,12 +217,12 @@ QUnit.test("Manage script", function (assert) {
 						]
 					}
 				];
-				$('#btnUndo', tc).click();
+				$('li[data-command=restore]', tc).click();
 
 			}, function () {
 
 				assert.ok(global.testContext.storageGet.includes("lastDeletedBookmarks"), "Clicking on Undo reads storage for 'lastDeletedBookmarks'");
-				assert.deepEqual(global.testContext.storageRemove, ["lastDeletedBookmarks"], "Clicking on Undo clears the storage of data");
+				//assert.deepEqual(global.testContext.storageRemove, ["lastDeletedBookmarks"], "Clicking on Undo clears the storage of data");
 				assert.ok(global.testContext.getTreeCalled > 0, "Clicking on Undo reads the tree of bookmarks");
 				assert.deepEqual(global.testContext.bookmarksCreate,
 					[{
@@ -223,6 +246,7 @@ QUnit.test("Manage script", function (assert) {
 						}
 					], "Clicking on Undo creates a notification that bookmarks have been restored");
 
+				global.testContext.messageListener(data);
 				contextReset();
 				global.testContext.tree = {
 					"children" : [{
@@ -242,27 +266,20 @@ QUnit.test("Manage script", function (assert) {
 					"title" : "title 1"
 				};
 				$('#divTree ul li input', tc).eq(1).click();
+			}, function () {
 
-				assert.equal($('#btnRemove', tc).css('display') == 'none', false, "Clicking on a checkbox shows btnRemove");
-				$('#btnRemove', tc).click();
+				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', false, "Clicking on a checkbox shows Remove");
+				$('li[data-command=delete]', tc).click();
 
 			}, function () {
 				assert.ok(global.testContext.getTreeCalled > 0, "Clicking on Delete reads the tree of bookmarks");
 				assert.deepEqual(global.testContext.bookmarksRemove, [
 						"test id 2"
 					], "Clicking on Delete removes selected bookmarks");
-				assert.deepEqual(global.testContext.storageSet, [{
-							"lastDeletedBookmarks" : [{
-									"id" : "test id 2",
-									"title" : "title 2",
-									"url" : "test url"
-								}
-							]
-						}
-					], "Clicking on Delete sets storage for 'lastDeletedBookmarks'");
+				assert.deepEqual(global.testContext.storageSet, [{"lastDeletedBookmarks":{"bookmarks":[[{"id":"test id 2","title":"title 2","url":"test url"}]]}}], "Clicking on Delete sets storage for 'lastDeletedBookmarks'");
 
 				contextReset();
-				$('#btnToggleAll', tc).click();
+				$('li[data-command=toggleAll]', tc).click();
 
 			}, function () {
 				var inputs = $('#divTree input', tc);
@@ -276,7 +293,7 @@ QUnit.test("Manage script", function (assert) {
 
 				inputs.eq(1).parent().addClass('selected');
 
-				$('#btnToggleBefore', tc).click();
+				$('li[data-command=toggleBefore]', tc).click();
 
 			}, function () {
 				var inputs = $('#divTree input', tc);
