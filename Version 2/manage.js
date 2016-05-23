@@ -15,12 +15,11 @@
     		var subheader = $('#divSubheader', context);
     		var counts = $('#divCounts', context);
     		var tree = $('#divTree', context);
-    		var buttons = $('#divButtons', context);
-    		var btnToggleAll = $('#btnToggleAll', context);
-    		var btnToggleBefore = $('#btnToggleBefore', context);
-    		var btnRemove = $('#btnRemove', context);
-    		var btnUndo = $('#btnUndo', context);
     		var menu = $('#ulMenu', context);
+    		var liToggleAll = $('[data-command=toggleAll]', menu);
+    		var liToggleBefore = $('[data-command=toggleBefore]', menu);
+    		var liRemoveBookmarks = $('[data-command=delete]', menu);
+    		var liUndo = $('[data-command=restore]', menu);
     		var copyPaste = $('#divCopyPaste', context);
 
     		$(context).on('keydown', function (e) {
@@ -40,29 +39,36 @@
     			if (menu.is(':visible') || copyPaste.is(':visible'))
     				return;
     			var ul = tree.find('>ul');
-    			var index = ul.find('>li:has(div.current)').index();
-    			if (index < 0)
-    				index = 0;
+				var items=ul.find('>li>div:has(a)');
+    			var index = 0;
+				items.each(function(idx) {
+					if ($(this).is('.current')) {
+						index=idx;
+						return false;
+					}
+					if (!index&&$(this).is('.selected')) {
+						index=idx;
+					}
+				});
     			switch (e.which) {
     			case 38: //Up
     				if (index - 1 >= 0) {
-    					ul.find('>li>div').eq(index).removeClass('current');
+    					items.eq(index).removeClass('current');
     					index--;
-    					ul.find('>li>div').eq(index).addClass('current');
+    					items.eq(index).addClass('current');
     					bringCurrentIntoView();
     				}
     				break;
     			case 40: //Down
-    				var total = ul.find('>li').length;
-    				if (index + 1 < total) {
-    					ul.find('>li>div').eq(index).removeClass('current');
+    				if (index + 1 < items.length) {
+    					items.eq(index).removeClass('current');
     					index++;
-    					ul.find('>li>div').eq(index).addClass('current');
+    					items.eq(index).addClass('current');
     					bringCurrentIntoView();
     				}
     				break;
     			case 32: //Space
-    				ul.find('>li').eq(index).find('input[type=checkbox]').click();
+    				items.eq(index).find('input[type=checkbox]').click();
     				break;
     			}
 
@@ -71,14 +77,6 @@
     		api.onMessage(refresh);
 
     		function refresh(data) {
-    			api.getData('lastDeletedBookmarks').then(function (bookmarks) {
-    				if (bookmarks) {
-    					btnUndo.text('Restore ' + bookmarks.length + ' bookmarks').show();
-    				} else {
-    					btnUndo.hide();
-    				}
-    			});
-
     			var checkData = {};
     			tree.find('input[type=checkbox]').each(function () {
     				var id = $(this).data('id');
@@ -89,22 +87,22 @@
     			});
     			currentData = data;
     			tree.empty();
-    			btnRemove.hide();
+    			liRemoveBookmarks.hide();
     			if (!data || !data.folder) {
     				header.text('Bookmark for the URL not found');
     				subheader.text('Move to a tab that has been bookmarked to populate this page.');
-    				btnToggleAll.hide();
-    				btnToggleBefore.hide();
-    				btnUndo.hide();
-    				refreshCounts();
+    				liToggleAll.hide();
+    				liToggleBefore.hide();
+    				liUndo.hide();
+    				refreshMenuOptions();
     				return;
     			}
-    			btnToggleAll.show();
-    			btnToggleBefore.show();
+    			liToggleAll.show();
+    			liToggleBefore.show();
     			header.text(data.folder.title);
     			subheader.empty();
     			createTree(data.folder, checkData);
-    			tree.find('input[type=checkbox]').click(refreshbtnRemove);
+    			tree.find('input[type=checkbox]').click(refreshMenuOptions);
     			tree.find('a').each(function () {
     				if (ApiWrapper.sameUrls($(this).attr('href'), data.current.url) < 2)
     					return;
@@ -113,7 +111,7 @@
     				par.addClass('selected');
     			});
     			bringSelectedIntoView();
-    			refreshCounts();
+    			refreshMenuOptions();
     		}
 
     		function createTree(folder, checkData) {
@@ -138,6 +136,10 @@
     					.attr('type', 'checkbox')
     					.val(itm.id)
     					.attr('title', 'Mark for delete')
+						.click(function() {
+							$('div.current',tree).removeClass('current');
+							$(this).parents('div:first').addClass('current');
+						})
     					.appendTo(elem);
     				chk.data('id', itm.id);
     				if (checkData && checkData[itm.id]) {
@@ -190,10 +192,19 @@
     			}
     		}
 
-    		function refreshbtnRemove() {
+    		function refreshMenuOptions() {
     			var ul = tree.find('>ul');
     			var checkedInputs = ul.find('input:checked');
-    			btnRemove.toggle(!!checkedInputs.length);
+    			liRemoveBookmarks.toggle(!!checkedInputs.length);
+
+    			api.getData('lastDeletedBookmarks').then(function (bookmarks) {
+    				if (bookmarks) {
+    					liUndo.text('Restore ' + bookmarks.length + ' bookmarks').show();
+    				} else {
+    					liUndo.hide();
+    				}
+    			});
+
     			refreshCounts();
     		}
 
@@ -273,6 +284,45 @@
     		}
 
     		var menuInit = false;
+    		function initMenu() {
+    			menuInit = true;
+    			menu.menu({
+    				select : function (ev, ui) {
+    					var command = $(ui.item).data('command');
+    					executeMenuCommand(command);
+    				},
+    				items : "> :not(.ui-widget-header)"
+    			}).position({
+    				my : "right top",
+    				at : "right bottom",
+    				of : menuImg,
+    				collision : 'flip'
+    			});
+    		}
+
+    		function executeMenuCommand(command) {
+    			switch (command) {
+    			case 'copy':
+    				copyURLsToClipboard();
+    				break;
+    			case 'paste':
+    				pasteURLsFromClipboard();
+    				break;
+    			case 'toggleAll':
+					toggleAll();
+    				break;
+    			case 'toggleBefore':
+					toggleBefore();
+    				break;
+    			case 'delete':
+					removeBookmarks();
+    				break;
+    			case 'restore':
+					restoreBookmarks();
+    				break;
+    			}
+    		}
+
     		$(context).click(function () {
     			menu.hide();
     		});
@@ -283,27 +333,9 @@
     				menu.hide();
     			} else {
     				if (!menuInit) {
-    					menuInit = true;
-    					menu.menu({
-    						select : function (ev, ui) {
-    							var command = $(ui.item).data('command');
-    							switch (command) {
-    							case 'copy':
-    								copyURLsToClipboard();
-    								break;
-    							case 'paste':
-    								pasteURLsFromClipboard();
-    								break;
-    							}
-    						}
-    					}).position({
-    						my : "right top",
-    						at : "right bottom",
-    						of : menuImg,
-    						collision : 'flip'
-    					});
-
+    					initMenu();
     				}
+					refreshMenuHeaders();
     				menu.show();
     			}
     		});
@@ -312,20 +344,39 @@
     			copyPaste.hide();
     		});
 
-    		btnToggleAll.click(function () {
+			function refreshMenuHeaders() {
+					$('li.ui-widget-header',menu).show().each(function() {
+						var itm=$(this);
+						var next=itm.next('li');
+						while (next.length) {
+							if (next.is('.ui-menu-item')&&next.css('display')!='none') {
+								return;
+							}
+							if (next.is('.ui-widget-header')) {
+								break;
+							}
+							next=next.next('li');
+						}
+						itm.hide();
+					});
+			}
+
+			function toggleAll() {
     			var ul = tree.find('>ul');
     			var val = ul.find('>li>div>input:checked').length < ul.find('>li>div>input:not(:checked)').length;
     			ul.find('>li>div>input').prop('checked', val);
-    			refreshbtnRemove();
-    		});
-    		btnToggleBefore.click(function () {
+    			refreshMenuOptions();
+    		}
+
+			function toggleBefore() {
     			var ul = tree.find('>ul');
     			var index = ul.find('>li:has(div.selected)').index();
     			var val = ul.find('>li>div>input:lt(' + index + '):checked').length < ul.find('>li>div>input:lt(' + index + '):not(:checked)').length;
     			ul.find('>li>div>input:lt(' + index + ')').prop('checked', val);
-    			refreshbtnRemove();
-    		});
-    		btnRemove.click(function () {
+    			refreshMenuOptions();
+    		}
+
+			function removeBookmarks() {
     			var ul = tree.find('>ul');
     			var inputs = ul.find('input:checked');
     			if (!inputs.length)
@@ -346,18 +397,19 @@
     					return p.id;
     				})).then(function (bookmarks) {
     				api.setData('lastDeletedBookmarks', bookmarks).then(function () {
-    					btnUndo.text('Restore ' + bookmarks.length + ' bookmarks').show();
+						var k=ids.length;
     					ids.forEach(function (p) {
     						api.removeBookmarksById([p.id]).then(function () {
     							$(p.input).closest('li').remove();
+								k--;
+								if (k==0) refreshMenuOptions();
     						});
     					});
-    					refreshbtnRemove();
     				});
     			});
-    		});
+    		}
 
-    		btnUndo.click(function () {
+			function restoreBookmarks() {
     			api.getData('lastDeletedBookmarks').then(function (bookmarks) {
     				if (!confirm('Are you sure you want to restore ' + bookmarks.length + ' bookmarks?'))
     					return;
@@ -383,7 +435,7 @@
     								api.createBookmarks(bookmarks);
     								api.notify('Bookmarks restored');
     								api.removeData('lastDeletedBookmarks').then(function () {
-    									btnUndo.hide();
+    									liUndo.hide();
     									refresh(currentData);
     								});
     							});
@@ -392,14 +444,14 @@
     						api.createBookmarks(bookmarks).then(function () {
     							api.notify('Bookmarks restored');
     							api.removeData('lastDeletedBookmarks').then(function () {
-    								btnUndo.hide();
+    								liUndo.hide();
     								refresh(currentData);
     							});
     						});
     					}
     				});
     			});
-    		});
+    		}
     		refresh();
 
     	});
