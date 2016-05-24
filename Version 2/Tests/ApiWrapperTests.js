@@ -24,13 +24,19 @@ QUnit.test("ApiWrapper init", function (assert) {
 		tabs : {
 			onUpdated : {
 				addListener : function () {
-					chrome.listener = arguments[0];
+					chrome.updatedListener = arguments[0];
+				}
+			},
+			onRemoved : {
+				addListener : function () {
+					chrome.removedListener = arguments[0];
 				}
 			}
 		}
 	};
 	assert.ok(new ApiWrapper(chrome), "ApiWrapper init binds to a chrome like object");
-	assert.ok(chrome.listener && typeof(chrome.listener) == 'function', "ApiWrapper init binds to chrome.tabs.onUpdated with a listener function");
+	assert.ok(typeof(chrome.updatedListener) == 'function', "ApiWrapper init binds to chrome.tabs.onUpdated with a listener function");
+	assert.ok(typeof(chrome.removedListener) == 'function', "ApiWrapper init binds to chrome.tabs.onRemoved with a listener function");
 });
 
 QUnit.test("ApiWrapper getCurrentTab", function (assert) {
@@ -77,6 +83,20 @@ QUnit.test("ApiWrapper getBackgroundPage", function (assert) {
 
 QUnit.test("ApiWrapper setUrl", function (assert) {
 	var chrome = {
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		},
 		tabs : {
 			update : function (tabId, properties, callback) {
 				chrome.tabId = tabId;
@@ -98,7 +118,6 @@ QUnit.test("ApiWrapper setUrl", function (assert) {
 		assert.equal(chrome.properties.url, "test url", "ApiWrapper setUrl updates the url");
 		assert.ok(chrome.callback && typeof(chrome.callback) == 'function', "ApiWrapper setUrl populates callback");
 		assert.equal(result, "expected result", "ApiWrapper setUrl returns a promise that then receives the result of the callback");
-		assert.deepEqual(api.history,{12:["test url"]},"ApiWrapper setUrl appends the url to the URL history for the tab");
 	});
 });
 
@@ -766,7 +785,23 @@ QUnit.test("ApiWrapper sendMessage", function (assert) {
 });
 
 QUnit.test("ApiWrapper getListOfUrls when there is no list", function (assert) {
-	var chrome = {};
+	var chrome = {
+		items:{},
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		}
+	};
 	var api = new ApiWrapper(chrome);
 	assert.notOk(chrome.tabId, "ApiWrapper doesn't populate tabId by default");
 	assert.notOk(chrome.callback, "ApiWrapper doesn't populate callback by default");
@@ -783,9 +818,25 @@ QUnit.test("ApiWrapper getListOfUrls when there is no list", function (assert) {
 });
 
 QUnit.test("ApiWrapper getListOfUrls when there is a list", function (assert) {
-	var chrome = {};
+	var chrome = {
+		items:{},
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		}
+	};
 	var api = new ApiWrapper(chrome);
-	api.history[12] = ["expected result"];
+	chrome.items.urlHistory = { 12 : ["expected result"] };
 	assert.notOk(chrome.tabId, "ApiWrapper doesn't populate tabId by default");
 	assert.notOk(chrome.callback, "ApiWrapper doesn't populate callback by default");
 	var promise = api.getListOfUrls(12);
@@ -798,7 +849,22 @@ QUnit.test("ApiWrapper getListOfUrls when there is a list", function (assert) {
 });
 
 QUnit.test("ApiWrapper pushUrlForTab when there is no list", function (assert) {
-	var chrome = {};
+	var chrome = {
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		}
+	};
 	var api = new ApiWrapper(chrome);
 	var a=assert.async();
 	api.pushUrlForTab(12,"test url").then(function() {
@@ -810,9 +876,25 @@ QUnit.test("ApiWrapper pushUrlForTab when there is no list", function (assert) {
 });
 
 QUnit.test("ApiWrapper pushUrlForTab when there is a list", function (assert) {
-	var chrome = {};
+	var chrome = {
+		items:{},
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		}
+	};
 	var api = new ApiWrapper(chrome);
-	api.history[12] = ["another url"];
+	chrome.items.urlHistory = { 12 : ["another url"] };
 	var a=assert.async();
 	api.pushUrlForTab(12,"test url").then(function() {
 		api.getListOfUrls(12).then(function(list) {
@@ -824,6 +906,20 @@ QUnit.test("ApiWrapper pushUrlForTab when there is a list", function (assert) {
 
 QUnit.test("ApiWrapper getLastTabBookmarkedUrl when there is no list", function (assert) {
 	var chrome = {
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		},
 		bookmarks : {
 			getTree : function (callback) {
 				chrome.callback = callback;
@@ -874,6 +970,21 @@ QUnit.test("ApiWrapper getLastTabBookmarkedUrl when there is no list", function 
 
 QUnit.test("ApiWrapper getLastTabBookmarkedUrl when there is a list", function (assert) {
 	var chrome = {
+		items:{},
+		storage : {
+			local : {
+				set : function (items, callback) {
+					chrome.items = items;
+					chrome.setCallback = callback;
+					callback("expected result");
+				},
+				get : function (key, callback) {
+					chrome.key = key;
+					chrome.getCallback = callback;
+					callback(chrome.items);
+				}
+			}
+		},
 		bookmarks : {
 			getTree : function (callback) {
 				chrome.callback = callback;
@@ -908,7 +1019,7 @@ QUnit.test("ApiWrapper getLastTabBookmarkedUrl when there is a list", function (
 		}
 	};
 	var api = new ApiWrapper(chrome);
-	api.history[12] = ["url12"];
+	chrome.items.urlHistory = { 12 : ["url12"] };
 	assert.notOk(chrome.tabId, "ApiWrapper doesn't populate tabId by default");
 	assert.notOk(chrome.callback, "ApiWrapper doesn't populate callback by default");
 	var promise = api.getLastTabBookmarkedUrl(12);
@@ -1301,7 +1412,7 @@ QUnit.test("ApiWrapper dispose", function (assert) {
 	handlers.push(api.onImportEndedBookmark(listener));
 	handlers.push(api.onMessage(listener));
 	handlers.push(api.onCommand(listener));
-	assert.equal(chrome.listeners, handlers.length + 2, "ApiWrapper on methods registered the expected number of listeners"); // one from init, and two handlers for onCommand
+	assert.equal(chrome.listeners, handlers.length + 3, "ApiWrapper on methods registered the expected number of listeners"); // two from init, and two handlers for onCommand
 	api.dispose();
 	assert.equal(chrome.listeners, 0, "ApiWrapper dispose removed all listeners");
 	var count = 0;

@@ -1,5 +1,3 @@
-//TODO: handle any error (runtime.lastError)
-
 (function () {
 
 	var global=this;
@@ -61,13 +59,17 @@
 		},
 		init : function () {
 			self = this;
-			self.history = {};
 			self.handlers = [];
 			if (self.chr && self.chr.tabs && self.chr.tabs.onUpdated) {
 				self.onUpdatedTab(function (tabId, changeInfo, tab) {
 					if (changeInfo && changeInfo.status == 'complete') {
 						self.pushUrlForTab(tabId,tab.url);
 					}
+				});
+			}
+			if (self.chr && self.chr.tabs && self.chr.tabs.onRemoved) {
+				self.onRemovedTab(function(tabId) {
+					self.clearUrlHistory(tabId);
 				});
 			}
 		},
@@ -149,7 +151,10 @@
 							'19' : icon
 						},
 						tabId : tabId
-					}, resolve);
+					}, function() {
+						self.log(self.getError());
+						return resolve.apply(this,arguments)
+					});
 				});
 			return promise;
 		},
@@ -160,7 +165,7 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.tabs.get(tabId, function (tab) {
-						tab ? resolve(tab) : self.log('Error getting tab ' + tabId + ': ' + self.chr.runtime.lastError);
+						tab ? resolve(tab) : self.log('Error getting tab ' + tabId + ': ' + self.getError());
 					});
 				});
 			return promise;
@@ -325,7 +330,7 @@
 						"contexts" : ["page", "frame", "selection", "link", "editable", "image", "video", "audio"]
 					};
 					self.chr.contextMenus.create(itm, function () {
-						self.log(self.chr.runtime.lastError);
+						self.log(self.getError());
 						resolve(itm);
 					});
 				});
@@ -335,7 +340,7 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.contextMenus.remove(id, function () {
-						self.log(self.chr.runtime.lastError);
+						self.log(self.getError());
 						resolve(arguments);
 					});
 				});
@@ -355,25 +360,48 @@
 				});
 			return promise;
 		},
+		urlHistoryKey:'urlHistory',
 		pushUrlForTab:function(tabId,url) {
 			self = this;
 			var promise = new Promise(function (resolve, reject) {
-				var list = self.history[tabId];
-				if (!list) {
-					list = [];
-					self.history[tabId] = list;
-				}
-				list.push(url);
-				resolve(url);
+				self.getData(self.urlHistoryKey).then(function(history) {
+					history=history||{};
+					var list = history[tabId];
+					if (!list) {
+						list = [];
+						history[tabId] = list;
+					}
+					list.push(url);
+					self.setData(self.urlHistoryKey,history).then(function() {
+						resolve(url);
+					});
+				});
 			});
 			return promise;
 		},
 		getListOfUrls : function (tabId) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-					var list = self.history[tabId];
+				self.getData(self.urlHistoryKey).then(function(history) {
+					history=history||{};
+					var list = history[tabId];
 					list ? resolve(list) : self.log('No history for tab ' + tabId);
 				});
+			});
+			return promise;
+		},
+		clearUrlHistory:function(tabId) {
+			self = this;
+			var promise = new Promise(function (resolve, reject) {
+				self.getData(self.urlHistoryKey).then(function(history) {
+					history=history||{};
+					var exists=!!history[tabId];
+					delete history[tabId];
+					self.setData(self.urlHistoryKey,history).then(function() {
+						resolve(exists);
+					});
+				});
+			});
 			return promise;
 		},
 		getLastTabBookmarkedUrl : function (tabId) {
@@ -491,6 +519,9 @@
 				eh.remove();
 			});
 			this.handlers = null;
+		},
+		getError : function() {
+			if (this.chr&&this.chr.runtime) return this.chr.runtime.lastError;
 		}
 	};
 
