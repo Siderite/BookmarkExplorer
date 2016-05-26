@@ -69,7 +69,7 @@
 			}
 			if (self.chr && self.chr.tabs && self.chr.tabs.onRemoved) {
 				self.onRemovedTab(function(tabId) {
-					self.clearUrlHistory(tabId);
+					self.clearUrlHistory(/*tabId*/);
 				});
 			}
 		},
@@ -83,6 +83,13 @@
 						var tab = tabs[0];
 						tab ? resolve(tab) : self.log('No active tab found');
 					});
+				});
+			return promise;
+		},
+		getAllTabs : function () {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					self.chr.tabs.query({}, resolve);
 				});
 			return promise;
 		},
@@ -395,11 +402,26 @@
 			var promise = new Promise(function (resolve, reject) {
 				self.getData(self.urlHistoryKey).then(function(history) {
 					history=history||{};
-					var exists=!!history[tabId];
-					delete history[tabId];
-					self.setData(self.urlHistoryKey,history).then(function() {
-						resolve(exists);
-					});
+					if (tabId) {
+						var exists=!!history[tabId];
+						delete history[tabId];
+						self.setData(self.urlHistoryKey,history).then(function() {
+							resolve(exists);
+						});
+					} else {
+						self.getAllTabs().then(function(tabs) {
+							var hids=Object.keys(history);
+							var tids=tabs.map(function(tab) { return tab.id+''; });
+							hids.forEach(function(id) {
+								if (!tids.includes(id)) {
+									delete history[id];
+								}
+							});
+							self.setData(self.urlHistoryKey,history).then(function() {
+								resolve(true);
+							});
+						});
+					}
 				});
 			});
 			return promise;
