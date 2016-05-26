@@ -6,7 +6,7 @@ html,body {
 	flex-direction:column;
 	height:100%;
 }
-#divHeader,#divSubheader {
+#divHeader {
     width: 100%;
     background: #eeeeee;
 	margin:0;
@@ -14,8 +14,6 @@ html,body {
 	flex-grow: 0;
 	flex-shrink: 1;
 	flex-basis: auto;
-}
-#divHeader {
     font-size: 1.5rem;
     font-weight: bold;
 }
@@ -25,52 +23,26 @@ html,body {
 	float:right;
 	cursor:pointer;
 }
-#divSubheader {
-    font-size: 1.1rem;
-}
-#divCounts {
-	margin-bottom:-0.7rem;
-	background-color:white;
-	z-index:1;
-	flex-grow: 0;
-	flex-shrink: 1;
-	flex-basis: auto;
-}
-#divCounts span {
-	float:right;
-	font-size:smaller;
-	margin-right:2rem;
-}
-#divTree {
+#divList {
 	flex-grow: 1;
 	flex-shrink: 1;
 	flex-basis: auto;
 	overflow-y:auto;
 	position:relative;
 }
-#divTree ul {
+#divList ul {
 	list-style-type:none;
 }
-#divTree li div {
+#divList li div {
 	clear:both;
 }
-#divTree li input {
+#divList li input {
 	float:right;
 	margin-right:1.2rem;
 	height:1.2rem;
 }
-#divTree li:hover {
+#divList li:hover {
 	background:#E0E0F0;
-}
-span.subfolder {
-	opacity:0.6;
-	font-weight:bold;
-}
-a,span.subfolder {
-	line-height:1.5rem;
-}
-div.selected {
-	background:#D0D0F0;
 }
 div.current {
 	border:1px dotted black;
@@ -84,6 +56,11 @@ span>img {
 	display:none;
 	position:absolute;
 	z-index:2;
+}
+.treeHeader {
+    font-size: 1.2rem;
+    font-weight: bold;
+	cursor:pointer;
 }
 
 
@@ -118,27 +95,4 @@ span>img {
     background: #E0E0E0;
     font-weight: bold;
     padding: 2px;
-}
-
-
-#divCopyPaste {
-	top:0px;
-	left:0px;
-	bottom:0px;
-	right:0px;
-	position:fixed;
-	z-index:3;
-	display:none;
-	padding:90px;
-	background:rgba(240,240,240,0.8);
-}
-
-#divCopyPaste .buttons {
-	float:right;
-}
-
-#divCopyPaste textarea {
-	width:100%;
-	height:100%;
-	resize:none;
 }

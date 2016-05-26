@@ -80,6 +80,11 @@
 				});
 			});
 		},
+		openDeleted : function (url) {
+			var self = this;
+			var deletedUrl = self.api.getExtensionUrl('deleted.html');
+			self.api.selectOrNew(deletedUrl);
+		},
 		refresh : function () {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
@@ -91,8 +96,8 @@
 		},
 		refreshManage : function (currentTab) {
 			var self = this;
-			var manageUrl = self.api.getExtensionUrl('manage.html');
-			if (currentTab.url == manageUrl)
+			var ownUrls = [self.api.getExtensionUrl('manage.html'),self.api.getExtensionUrl('deleted.html')];
+			if (ownUrls.includes(currentTab.url))
 				return;
 			self.api.getTabsByUrl(manageUrl).then(function (tabs) {
 				var tab = tabs[0];

@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Siderite's Bookmark Explorer</title>
+	<script src="jquery-2.2.2.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="ApiWrapper.js"></script>
+	<script src="deleted.js"></script>
+	<link rel="stylesheet" type="text/css" href="deleted.css" media="all">
+  </head>
+  <body>
+	<div id="divHeader"><span></span><img src="menu.png"/></div>
+	<div id="divList"></div>
+	<ul id="ulMenu">
+		<li class="ui-widget-header">Items</li>
+		<li data-command="toggleAll">Toggle all</li>
+		<li class="ui-widget-header">Actions</li>
+		<li data-command="restore">Restore selected</li>
+		<li data-command="clearAll">Clear all data</li>
+	</ul>
+  </body>
+</html>

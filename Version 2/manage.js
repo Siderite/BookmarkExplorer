@@ -22,10 +22,10 @@
     		var counts = $('#divCounts', context);
     		var tree = $('#divTree', context);
     		var menu = $('#ulMenu', context);
-    		var liToggleAll = $('[data-command=toggleAll]', menu);
-    		var liToggleBefore = $('[data-command=toggleBefore]', menu);
-    		var liRemoveBookmarks = $('[data-command=delete]', menu);
-    		var liUndo = $('[data-command=restore]', menu);
+    		var liToggleAll = $('li[data-command=toggleAll]', menu);
+    		var liToggleBefore = $('li[data-command=toggleBefore]', menu);
+    		var liRemoveBookmarks = $('li[data-command=delete]', menu);
+    		var liManageDeleted = $('li[data-command=restore]', menu);
     		var copyPaste = $('#divCopyPaste', context);
 
 			var Bookmarks={
@@ -248,9 +248,9 @@
 
 				Bookmarks.get().then(function (bookmarks) {
     				if (bookmarks) {
-    					liUndo.text('Restore ' + bookmarks.length + ' bookmarks').show();
+    					liManageDeleted.show();
     				} else {
-    					liUndo.hide();
+    					liManageDeleted.hide();
     				}
     			});
 
@@ -367,7 +367,7 @@
 					removeBookmarks();
     				break;
     			case 'restore':
-					restoreBookmarks();
+					app.openDeleted();
     				break;
     			}
     		}
@@ -458,43 +458,6 @@
     			});
     		}
 
-			function restoreBookmarks() {
-    			Bookmarks.get().then(function (bookmarks) {
-    				if (!confirm('Are you sure you want to restore ' + bookmarks.length + ' bookmarks?'))
-    					return;
-    				var parentIds = {};
-    				bookmarks.forEach(function (bm) {
-    					if (bm.parentId)
-    						parentIds[bm.parentId] = true;
-    				});
-    				parentIds = Object.keys(parentIds);
-    				api.getBookmarksByIds(parentIds).then(function (parentBookmarks) {
-    					if (!parentBookmarks || parentBookmarks.filter(function (bm) {
-    							return !!bm;
-    						}).length != parentIds.length) {
-    						api.notify('Parent bookmarks are missing, copying all in a new folder');
-    						api.getBookmarksBar().then(function (bar) {
-    							api.createBookmarks({
-    								title : 'Undeleted items',
-    								parentId : bar.id
-    							}).then(function (parent) {
-    								bookmarks.forEach(function (bm) {
-    									bm.parentId = parent.id;
-    								});
-    								api.createBookmarks(bookmarks);
-    								api.notify('Bookmarks restored');
-    								Bookmarks.remove().then(refreshFromCurrent);
-    							});
-    						});
-    					} else {
-    						api.createBookmarks(bookmarks).then(function () {
-    							api.notify('Bookmarks restored');
-    							Bookmarks.remove().then(refreshFromCurrent);
-    						});
-    					}
-    				});
-    			});
-    		}
     		refresh();
 
 			});
