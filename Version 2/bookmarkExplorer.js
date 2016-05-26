@@ -96,7 +96,8 @@
 		},
 		refreshManage : function (currentTab) {
 			var self = this;
-			var ownUrls = [self.api.getExtensionUrl('manage.html'),self.api.getExtensionUrl('deleted.html')];
+			var manageUrl=self.api.getExtensionUrl('manage.html');
+			var ownUrls = [manageUrl,self.api.getExtensionUrl('deleted.html')];
 			if (ownUrls.includes(currentTab.url))
 				return;
 			self.api.getTabsByUrl(manageUrl).then(function (tabs) {

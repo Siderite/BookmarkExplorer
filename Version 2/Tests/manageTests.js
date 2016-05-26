@@ -217,34 +217,6 @@ QUnit.test("Manage script", function (assert) {
 						]
 					}
 				];
-				$('li[data-command=restore]', tc).click();
-
-			}, function () {
-
-				assert.ok(global.testContext.storageGet.includes("lastDeletedBookmarks"), "Clicking on Undo reads storage for 'lastDeletedBookmarks'");
-				//assert.deepEqual(global.testContext.storageRemove, ["lastDeletedBookmarks"], "Clicking on Undo clears the storage of data");
-				assert.ok(global.testContext.getTreeCalled > 0, "Clicking on Undo reads the tree of bookmarks");
-				assert.deepEqual(global.testContext.bookmarksCreate,
-					[{
-							"parentId" : "test bookmarks bar id",
-							"title" : "Undeleted items"
-						}, {
-							"parentId" : undefined,
-							"url" : "test deleted url"
-						}
-					], "Clicking on Undo creates a new bookmark folder and restores the bookmark");
-				assert.deepEqual(global.testContext.notificationsCreate, [{
-							"iconUrl" : "bigIcon.png",
-							"message" : "Parent bookmarks are missing, copying all in a new folder",
-							"title" : "Siderite's Bookmark Explorer",
-							"type" : "basic"
-						}, {
-							"iconUrl" : "bigIcon.png",
-							"message" : "Bookmarks restored",
-							"title" : "Siderite's Bookmark Explorer",
-							"type" : "basic"
-						}
-					], "Clicking on Undo creates a notification that bookmarks have been restored");
 
 				global.testContext.messageListener(data);
 				contextReset();

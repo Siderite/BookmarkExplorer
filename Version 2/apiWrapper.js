@@ -19,7 +19,7 @@
 		}
 	};
 
-	var regUrl = /^([^\?]*?)[\/]?(\?[^#]+)?(#.+)?$/;
+	var regUrl = /^([^\?]*?)[\/]?(\?[^#]+)?(#.*)?$/;
 
 	function ApiWrapper(chr) {
 		if (!chr)

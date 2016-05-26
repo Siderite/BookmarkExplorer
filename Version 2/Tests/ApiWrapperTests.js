@@ -13,6 +13,7 @@ QUnit.test("ApiWrapper.SameUrls", function (assert) {
 	assert.equal(ApiWrapper.sameUrls('http://somethi.ng?x=1&y=2#another', 'http://somethi.ng?x=1&y=2#hash'), 2, "URLs are equal rank 2 when only hashes are different");
 	assert.equal(ApiWrapper.sameUrls('http://somethi.ng#hash', 'http://somethi.ng?x=1&y=2#hash'), 1, "URLs are equal rank 1 when parameters are missing from one");
 	assert.equal(ApiWrapper.sameUrls('http://somethi.ng#another', 'http://somethi.ng?x=1&y=2#hash'), 1, "URLs are equal rank 1 when parameters are missing from one and hashes are different");
+	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/?x=1&y=2#hash', 'http://somethi.ng?x=1&y=2#'), 2, "having an empty hash doesn't break the regular expression");
 });
 
 QUnit.test("ApiWrapper init", function (assert) {

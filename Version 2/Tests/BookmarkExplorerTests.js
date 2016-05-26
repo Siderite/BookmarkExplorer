@@ -353,12 +353,14 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 		url : "test url"
 	};
 	var api = {
+		getExtensionUrlFile:[],
+		getTabsByUrlUrl:[],
 		getExtensionUrl : function (file) {
-			api.getExtensionUrlFile = file;
+			api.getExtensionUrlFile.push(file);
 			return "ext:" + file;
 		},
 		getTabsByUrl : function (url) {
-			api.getTabsByUrlUrl = url;
+			api.getTabsByUrlUrl.push(url);
 			return new Promise(function (resolve, reject) {
 				resolve([]);
 			});
@@ -368,7 +370,7 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 	app.refreshManage(currentTab);
 	var a = assert.async()
 		stringFunctions(function () {
-			assert.equal(api.getExtensionUrlFile, "manage.html", "BookmarkExplorer refreshManage gets the correct URL for manage.html");
+			assert.deepEqual(api.getExtensionUrlFile, ["manage.html","deleted.html"], "BookmarkExplorer refreshManage gets the correct URL for manage.html and deleted.html");
 			assert.equal(api.getTabsByUrlUrl, "ext:manage.html", "BookmarkExplorer refreshManage searches the tab for manage.html");
 		}, a);
 });
