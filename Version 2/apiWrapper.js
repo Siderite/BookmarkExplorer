@@ -117,7 +117,7 @@
 					self.chr.notifications.create(null, {
 						type : "basic",
 						title : "Siderite's Bookmark Explorer",
-						message : text,
+						message : (text||''),
 						iconUrl : "bigIcon.png"
 					}, resolve);
 				});

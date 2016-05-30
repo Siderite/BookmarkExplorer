@@ -177,9 +177,16 @@
 					function walk(tree, path) {
 						var result = null;
 
+						function max(str,size) {
+							if (!str) return '';
+							if (str.length<=size-1) return str;
+							return str.substr(0,size)+'\u2026';
+						}
+
 						function setResultOrNotify(r, itm) {
 							if (result) {
-								result.notifications.push(r.current.title + ' in ' + itm.title + ' (' + r.current.url + ') is a duplicate bookmark! Using the one in ' + result.folder.title + '@' + (result.index + 1));
+								result.notifications.push('Using the one in "' + max(result.folder.title,20) + '"@' + (result.index + 1));
+								result.notifications.push('"'+max(r.current.title,50)+'" in "' + max(r.folder.title,20) + '" (' + max(r.current.url,50) + ') is a duplicate!');
 							} else {
 								result = r;
 							}
