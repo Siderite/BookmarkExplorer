@@ -23,61 +23,12 @@
 
 			var app = bgPage.app;
 
-			var Bookmarks = {
-				key : 'lastDeletedBookmarks',
-				get : function () {
-					return new Promise(function (resolve, reject) {
-						api.getData(Bookmarks.key).then(function (arr) {
-							if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
-								resolve(null);
-							} else {
-								resolve(arr.bookmarks[arr.bookmarks.length - 1]);
-							}
-						});
-					});
-				},
-				getAll : function () {
-					return new Promise(function (resolve, reject) {
-						api.getData(Bookmarks.key).then(function (arr) {
-							if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
-								resolve(null);
-							} else {
-								resolve(arr.bookmarks);
-							}
-						});
-					});
-				},
-				remove : function (ids) {
-					return new Promise(function (resolve, reject) {
-						api.getData(Bookmarks.key).then(function (arr) {
-							if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
-								resolve(null);
-								return;
-							}
-							arr.bookmarks.forEach(function (bookmarks) {
-								var i = 0;
-								while (i < bookmarks.length) {
-									if (ids.includes(bookmarks[i].id)) {
-										bookmarks.splice(i, 1);
-									} else {
-										i++;
-									}
-								}
-							});
-							arr.bookmarks=arr.bookmarks.filter(function(bms) { return !!bms.length; });
-							api.setData(Bookmarks.key, arr).then(resolve);
-						});
-					});
-				},
-				removeAll : function () {
-					return new Promise(function (resolve, reject) {
-						arr = {
-							bookmarks : []
-						};
-						api.setData(Bookmarks.key, arr).then(resolve);
-					});
+			list.listable({
+				items:'li>div:has(a)',
+				isEnabled: function() {
+					return !menu.is(':visible');
 				}
-			};
+			});
 
 			$(context).on('keydown', function (e) {
 				if (menu.is(':visible'))
@@ -91,52 +42,6 @@
 				}
 
 			});
-
-			$(context).on('keyup', function (e) {
-				if (menu.is(':visible'))
-					return;
-				var items = list.find('li>div:has(a)');
-				var index = 0;
-				items.each(function (idx) {
-					if ($(this).is('.current')) {
-						index = idx;
-						return false;
-					}
-				});
-				switch (e.which) {
-				case 38: //Up
-					if (index - 1 >= 0) {
-						items.eq(index).removeClass('current');
-						index--;
-						items.eq(index).addClass('current');
-						bringCurrentIntoView();
-					}
-					break;
-				case 40: //Down
-					if (index + 1 < items.length) {
-						items.eq(index).removeClass('current');
-						index++;
-						items.eq(index).addClass('current');
-						bringCurrentIntoView();
-					}
-					break;
-				case 32: //Space
-					items.eq(index).find('input[type=checkbox]').click();
-					break;
-				}
-
-			});
-
-			function bringCurrentIntoView() {
-				var height = list.height();
-				var current = list.find('div.current');
-				var top = list.scrollTop() + current.position().top;
-				if (top) {
-					list.clearQueue().animate({
-						scrollTop : top - height / 2
-					});
-				}
-			}
 
 			function toggleAll(elem) {
 				var inputs = elem.find('input[type=checkbox]');
@@ -208,7 +113,7 @@
 					break;
 				case 'clearAll':
 					if (confirm('Are you sure you want to permanently clear all deleted bookmarks?')) {
-						Bookmarks.removeAll();
+						api.removeAllDeletedBookmarks();
 						refresh();
 					}
 					break;
@@ -261,79 +166,33 @@
 									});
 									var ids=bookmarks.map(function(bm) { return bm.id; });
 									api.createBookmarks(bookmarks);
-									Bookmarks.remove(ids).then(notifyDone);
+									api.removeDeletedBookmarksByIds(ids).then(notifyDone);
 								});
 							});
 						} else {
 							var ids=bookmarks.map(function(bm) { return bm.id; });
 							api.createBookmarks(bookmarks).then(function () {
-								Bookmarks.remove(ids).then(notifyDone);
+								api.removeDeletedBookmarksByIds(ids).then(notifyDone);
 							});
 						}
 					});
 				});
 			}
 
-			var menuInit = false;
-			function initMenu() {
-				if (menuInit) return;
-				menuInit = true;
-				var items=menu.find('li').filter(function() { return $(this).css('display')=='none'; });
-				items.show();
-				menu.menu({
-					select : function (ev, ui) {
-						var command = $(ui.item).data('command');
-						executeMenuCommand(command);
-					},
-					items : "> :not(.ui-widget-header)"
-				}).position({
-					my : "right top",
-					at : "right bottom",
-					of : menuImg,
-					collision : 'flip'
-				});
-				items.hide();
-			}
-			$(context).click(function () {
-				menu.hide();
+			menu.contextMenu({
+				anchor:menuImg,
+				executeCommand:executeMenuCommand
 			});
-			menuImg.click(function (ev) {
-				ev.preventDefault();
-				ev.stopPropagation();
-				if (menu.is(':visible')) {
-					menu.hide();
-				} else {
-					initMenu();
-					refreshMenuHeaders();
-					menu.show();
-				}
-			});
-			function refreshMenuHeaders() {
-				$('li.ui-widget-header', menu).show().each(function () {
-					var itm = $(this);
-					var next = itm.next('li');
-					while (next.length) {
-						if (next.is('.ui-menu-item') && next.css('display') != 'none') {
-							return;
-						}
-						if (next.is('.ui-widget-header')) {
-							break;
-						}
-						next = next.next('li');
-					}
-					itm.hide();
-				});
-			}
 
 			function refresh() {
+				$(context).trigger('refresh');
 				list.empty();
-				Bookmarks.getAll().then(function (bookmarks) {
-					if (!bookmarks) {
+				api.getDeletedBookmarks().then(function (bookmarks) {
+					if (!bookmarks||!bookmarks.length) {
 						menuImg.hide();
 						liToggleAll.hide();
 						liRestore.hide();
 						liClearAll.hide();
-						refreshMenuHeaders();
 						header.text('No data available');
 						return;
 					}
@@ -341,7 +200,6 @@
 					liToggleAll.show();
 					liRestore.hide();
 					liClearAll.show();
-					refreshMenuHeaders();
 					header.text('Deleted bookmarks');
 					bookmarks.reverse().forEach(function (bms) {
 						api.getBookmarksByIds(bms.map(function (bm) {

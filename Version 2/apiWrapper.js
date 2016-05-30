@@ -328,6 +328,61 @@
 				});
 			return promise;
 		},
+		deletedBookmarksKey : 'lastDeletedBookmarks',
+		getDeletedBookmarks : function() {
+			var self=this;
+			return new Promise(function(resolve,reject) {
+    			self.getData(self.deletedBookmarksKey).then(function (arr) {
+					if (!arr||!arr.bookmarks||!arr.bookmarks.length) {
+						resolve(null);
+					} else {
+						resolve(arr.bookmarks);
+					}
+				});
+			});
+		},
+		addDeletedBookmarks:function(bookmarks) {
+			var self=this;
+			return new Promise(function(resolve,reject) {
+				self.getData(self.deletedBookmarksKey).then(function (arr) {
+					if (!arr||!arr.bookmarks||!arr.bookmarks.length) arr={ bookmarks:[] };
+					arr.bookmarks.push(bookmarks);
+					self.setData(self.deletedBookmarksKey, arr).then(resolve);
+				});
+			});
+		},
+		removeDeletedBookmarksByIds : function (ids) {
+			var self=this;
+			return new Promise(function (resolve, reject) {
+				self.getData(self.deletedBookmarksKey).then(function (arr) {
+					if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
+						resolve(null);
+						return;
+					}
+					arr.bookmarks.forEach(function (bookmarks) {
+						var i = 0;
+						while (i < bookmarks.length) {
+							if (ids.includes(bookmarks[i].id)) {
+								bookmarks.splice(i, 1);
+							} else {
+								i++;
+							}
+						}
+					});
+					arr.bookmarks=arr.bookmarks.filter(function(bms) { return !!bms.length; });
+					self.setData(self.deletedBookmarksKey, arr).then(resolve);
+				});
+			});
+		},
+		removeAllDeletedBookmarks : function () {
+			var self=this;
+			return new Promise(function (resolve, reject) {
+				arr = {
+					bookmarks : []
+				};
+				self.setData(self.deletedBookmarksKey, arr).then(resolve);
+			});
+		},
 		createMenuItem : function (id, title) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
