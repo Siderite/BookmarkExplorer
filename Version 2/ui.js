@@ -88,8 +88,7 @@
 	$.fn.bringIntoView = function (options) {
 		var target = $(this);
 		options = options || {};
-		var parent = $(options.parent||target.parent());
-
+		var parent = $(options.parent || target.parent());
 
 		var height = parent.height();
 		var minTop = 100000000;
@@ -97,21 +96,21 @@
 		var maxHeight = 0;
 		target.each(function () {
 			var ofs = $(this).offset();
-			if (minTop>ofs.top)
+			if (minTop > ofs.top)
 				minTop = ofs.top;
-			var h=$(this).height();
+			var h = $(this).height();
 			if (ofs.top + h > maxTop)
 				maxTop = ofs.top + h;
-			if (maxHeight<h) 
-				maxHeight=h;
+			if (maxHeight < h)
+				maxHeight = h;
 		});
 
-		var h=Math.min(maxTop-minTop,height-maxHeight);
-		var y=minTop+h/2;
+		var h = Math.min(maxTop - minTop, height - maxHeight);
+		var y = minTop + h / 2;
 
-		var top = parent.scrollTop() + y-parent.offset().top;
+		var top = parent.scrollTop() + y - parent.offset().top;
 		if (top) {
-			if (parent.queue().length>1) {
+			if (parent.queue().length > 1) {
 				parent.clearQueue();
 			}
 			parent.animate({

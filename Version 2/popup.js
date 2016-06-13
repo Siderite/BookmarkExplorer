@@ -1,8 +1,8 @@
 (function ($) {
 
 	var global = this;
-	var context = global.testContext&&global.testContext.document || global.document;
-	var chrome = global.testContext && global.testContext.chrome? global.testContext.chrome : global.chrome;
+	var context = global.testContext && global.testContext.document || global.document;
+	var chrome = global.testContext && global.testContext.chrome ? global.testContext.chrome : global.chrome;
 	var api = new ApiWrapper(chrome);
 
 	$(function () {
@@ -10,6 +10,7 @@
 		var btnPrev = $('#btnPrev', context);
 		var btnNext = $('#btnNext', context);
 		var btnManage = $('#btnManage', context);
+		var btnSettings = $('#divHeader img', context);
 		var divFolder = $('#divFolder', context);
 
 		api.getBackgroundPage().then(function (bgPage) {
@@ -24,6 +25,9 @@
 			});
 			btnManage.click(function () {
 				app.execute('manage');
+			});
+			btnSettings.click(function () {
+				app.execute('settings');
 			});
 
 			function refresh() {

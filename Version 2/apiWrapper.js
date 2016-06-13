@@ -1,9 +1,9 @@
 (function () {
 
-	var global=this;
+	var global = this;
 
 	function EventHandler(eventRoot, listener) {
-		this.disposed=false;
+		this.disposed = false;
 		this.eventRoot = eventRoot;
 		this.listener = listener;
 		if (eventRoot) {
@@ -63,13 +63,14 @@
 			if (self.chr && self.chr.tabs && self.chr.tabs.onUpdated) {
 				self.onUpdatedTab(function (tabId, changeInfo, tab) {
 					if (changeInfo && changeInfo.status == 'complete') {
-						self.pushUrlForTab(tabId,tab.url);
+						self.pushUrlForTab(tabId, tab.url);
 					}
 				});
 			}
 			if (self.chr && self.chr.tabs && self.chr.tabs.onRemoved) {
-				self.onRemovedTab(function(tabId) {
-					self.clearUrlHistory(/*tabId*/);
+				self.onRemovedTab(function (tabId) {
+					self.clearUrlHistory(/*tabId*/
+					);
 				});
 			}
 		},
@@ -103,12 +104,12 @@
 		setUrl : function (tabId, url) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-				self.pushUrlForTab(tabId,url).then(function() {
-					self.chr.tabs.update(tabId, {
-						url : url
-					}, resolve);
+					self.pushUrlForTab(tabId, url).then(function () {
+						self.chr.tabs.update(tabId, {
+							url : url
+						}, resolve);
+					});
 				});
-			});
 			return promise;
 		},
 		notify : function (text) {
@@ -117,7 +118,7 @@
 					self.chr.notifications.create(null, {
 						type : "basic",
 						title : "Siderite's Bookmark Explorer",
-						message : (text||''),
+						message : (text || ''),
 						iconUrl : "bigIcon.png"
 					}, resolve);
 				});
@@ -127,7 +128,7 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.storage.local.get(key, function (data) {
-						data && data[key]?resolve(data[key]):resolve();
+						data && data[key] ? resolve(data[key]) : resolve();
 					});
 				});
 			return promise;
@@ -150,6 +151,37 @@
 				});
 			return promise;
 		},
+		settingsKey : 'settings',
+		getSettings : function () {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				self.getData(self.settingsKey).then(function (data) {
+					if (!data) {
+						self.setSettings({}).then(resolve);
+						return;
+					};
+					resolve(data);
+				});
+			});
+		},
+		setSettings : function (settings) {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				if (!settings) {
+					self.getSettings().then(resolve);
+					return;
+				}
+				var data = {
+					prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? true : !!settings.prevNextContext,
+					manageContext : typeof(settings.manageContext) == 'undefined' ? true : !!settings.manageContext,
+					readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
+					readLaterFolderName : settings.readLaterFolderName || 'Read Later'
+				};
+				self.setData(self.settingsKey, data).then(function () {
+					resolve(data);
+				});
+			});
+		},
 		setIcon : function (tabId, icon) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
@@ -158,9 +190,9 @@
 							'19' : icon
 						},
 						tabId : tabId
-					}, function() {
+					}, function () {
 						self.log(self.getError());
-						return resolve.apply(this,arguments)
+						return resolve.apply(this, arguments)
 					});
 				});
 			return promise;
@@ -186,13 +218,24 @@
 				});
 			return promise;
 		},
-		newTab : function (url) {
+		newTab : function (url, notActive) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.tabs.create({
 						url : url,
-						selected : true
+						selected : true,
+						active : !notActive
 					}, resolve);
+				});
+			return promise;
+		},
+		closeTab : function (tabId) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					self.chr.tabs.remove(tabId, function () {
+						self.log(self.getError());
+						return resolve.apply(this, arguments)
+					});
 				});
 			return promise;
 		},
@@ -295,12 +338,40 @@
 				});
 			return promise;
 		},
+		getBookmarksByTitle : function (title, tree) {
+			var self = this;
+			if (!tree) {
+				var promise = new Promise(function (resolve, reject) {
+						self.getTree().then(function (tree) {
+							self.getBookmarksByTitle(title, tree).then(resolve);
+						});
+					});
+				return promise;
+			}
+			function walk(tree, result) {
+				var arr = tree.children || tree;
+				arr.forEach(function (itm) {
+					if (itm.children) {
+						walk(itm, result);
+					}
+					if (itm.title == title) {
+						result.push(itm);
+					}
+				});
+			};
+			var promise = new Promise(function (resolve, reject) {
+					var result = [];
+					walk(tree, result);
+					resolve(result);
+				});
+			return promise;
+		},
 		removeBookmarksById : function (ids) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.getBookmarksByIds(ids).then(function (bms) {
 						bms.forEach(function (bm) {
-							self.chr.bookmarks.remove(bm.id,function() {});
+							self.chr.bookmarks.remove(bm.id, function () {});
 						});
 						resolve(bms);
 					});
@@ -315,25 +386,26 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					var nodes = [];
-					var k=bms.length;
+					var k = bms.length;
 					bms.forEach(function (bm) {
 						delete bm.dateAdded;
 						delete bm.id;
 						self.chr.bookmarks.create(bm, function (node) {
 							nodes.push(node);
 							k--;
-							if (k==0) resolve(withArray ? nodes : nodes[0]);
+							if (k == 0)
+								resolve(withArray ? nodes : nodes[0]);
 						});
 					});
 				});
 			return promise;
 		},
 		deletedBookmarksKey : 'lastDeletedBookmarks',
-		getDeletedBookmarks : function() {
-			var self=this;
-			return new Promise(function(resolve,reject) {
-    			self.getData(self.deletedBookmarksKey).then(function (arr) {
-					if (!arr||!arr.bookmarks||!arr.bookmarks.length) {
+		getDeletedBookmarks : function () {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				self.getData(self.deletedBookmarksKey).then(function (arr) {
+					if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
 						resolve(null);
 					} else {
 						resolve(arr.bookmarks);
@@ -341,18 +413,21 @@
 				});
 			});
 		},
-		addDeletedBookmarks:function(bookmarks) {
-			var self=this;
-			return new Promise(function(resolve,reject) {
+		addDeletedBookmarks : function (bookmarks) {
+			var self = this;
+			return new Promise(function (resolve, reject) {
 				self.getData(self.deletedBookmarksKey).then(function (arr) {
-					if (!arr||!arr.bookmarks||!arr.bookmarks.length) arr={ bookmarks:[] };
+					if (!arr || !arr.bookmarks || !arr.bookmarks.length)
+						arr = {
+							bookmarks : []
+						};
 					arr.bookmarks.push(bookmarks);
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
 			});
 		},
 		removeDeletedBookmarksByIds : function (ids) {
-			var self=this;
+			var self = this;
 			return new Promise(function (resolve, reject) {
 				self.getData(self.deletedBookmarksKey).then(function (arr) {
 					if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
@@ -369,13 +444,15 @@
 							}
 						}
 					});
-					arr.bookmarks=arr.bookmarks.filter(function(bms) { return !!bms.length; });
+					arr.bookmarks = arr.bookmarks.filter(function (bms) {
+							return !!bms.length;
+						});
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
 			});
 		},
 		removeAllDeletedBookmarks : function () {
-			var self=this;
+			var self = this;
 			return new Promise(function (resolve, reject) {
 				arr = {
 					bookmarks : []
@@ -411,74 +488,79 @@
 		sendMessage : function (tabId, data) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-					var d=data||{};
-					var interval=setInterval(function() {
-						self.chr.tabs.sendMessage(tabId, d, null, function(val) {
-							if (!val) return;
-							setTimeout(function() { clearInterval(interval); },50);
-							resolve.apply(this,arguments);
-						});
-					},100);
+					var d = data || {};
+					var interval = setInterval(function () {
+							self.chr.tabs.sendMessage(tabId, d, null, function (val) {
+								if (!val)
+									return;
+								setTimeout(function () {
+									clearInterval(interval);
+								}, 50);
+								resolve.apply(this, arguments);
+							});
+						}, 100);
 				});
 			return promise;
 		},
-		urlHistoryKey:'urlHistory',
-		pushUrlForTab:function(tabId,url) {
+		urlHistoryKey : 'urlHistory',
+		pushUrlForTab : function (tabId, url) {
 			self = this;
 			var promise = new Promise(function (resolve, reject) {
-				self.getData(self.urlHistoryKey).then(function(history) {
-					history=history||{};
-					var list = history[tabId];
-					if (!list) {
-						list = [];
-						history[tabId] = list;
-					}
-					list.push(url);
-					self.setData(self.urlHistoryKey,history).then(function() {
-						resolve(url);
+					self.getData(self.urlHistoryKey).then(function (history) {
+						history = history || {};
+						var list = history[tabId];
+						if (!list) {
+							list = [];
+							history[tabId] = list;
+						}
+						list.push(url);
+						self.setData(self.urlHistoryKey, history).then(function () {
+							resolve(url);
+						});
 					});
 				});
-			});
 			return promise;
 		},
 		getListOfUrls : function (tabId) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-				self.getData(self.urlHistoryKey).then(function(history) {
-					history=history||{};
-					var list = history[tabId];
-					list ? resolve(list) : self.log('No history for tab ' + tabId);
+					self.getData(self.urlHistoryKey).then(function (history) {
+						history = history || {};
+						var list = history[tabId];
+						list ? resolve(list) : self.log('No history for tab ' + tabId);
+					});
 				});
-			});
 			return promise;
 		},
-		clearUrlHistory:function(tabId) {
+		clearUrlHistory : function (tabId) {
 			self = this;
 			var promise = new Promise(function (resolve, reject) {
-				self.getData(self.urlHistoryKey).then(function(history) {
-					history=history||{};
-					if (tabId) {
-						var exists=!!history[tabId];
-						delete history[tabId];
-						self.setData(self.urlHistoryKey,history).then(function() {
-							resolve(exists);
-						});
-					} else {
-						self.getAllTabs().then(function(tabs) {
-							var hids=Object.keys(history);
-							var tids=tabs.map(function(tab) { return tab.id+''; });
-							hids.forEach(function(id) {
-								if (!tids.includes(id)) {
-									delete history[id];
-								}
+					self.getData(self.urlHistoryKey).then(function (history) {
+						history = history || {};
+						if (tabId) {
+							var exists = !!history[tabId];
+							delete history[tabId];
+							self.setData(self.urlHistoryKey, history).then(function () {
+								resolve(exists);
 							});
-							self.setData(self.urlHistoryKey,history).then(function() {
-								resolve(true);
+						} else {
+							self.getAllTabs().then(function (tabs) {
+								var hids = Object.keys(history);
+								var tids = tabs.map(function (tab) {
+										return tab.id + '';
+									});
+								hids.forEach(function (id) {
+									if (!tids.includes(id)) {
+										delete history[id];
+									}
+								});
+								self.setData(self.urlHistoryKey, history).then(function () {
+									resolve(true);
+								});
 							});
-						});
-					}
+						}
+					});
 				});
-			});
 			return promise;
 		},
 		getLastTabBookmarkedUrl : function (tabId) {
@@ -557,14 +639,14 @@
 			return eh;
 		},
 		onCommand : function (listener) {
-			var self=this;
+			var self = this;
 			var handler = new EventHandler();
 			handler.commandListener = function (command) {
 				listener(command);
 			};
 			self.chr.commands.onCommand.addListener(handler.commandListener);
 			handler.contextMenuListener = function (info, tab) {
-				listener(info.menuItemId);
+				listener(info.menuItemId, info);
 			}
 			self.chr.contextMenus.onClicked.addListener(handler.contextMenuListener);
 			handler.remove = function () {
@@ -578,11 +660,14 @@
 			return handler;
 		},
 		onMessage : function (listener) {
-			var eh = new EventHandler(this.chr.runtime.onMessage, function(request,sender,sendResponse) {
-				var result=listener(request);
-				if (typeof(sendResponse)=='function') sendResponse({ result: result });
-				return true;
-			});
+			var eh = new EventHandler(this.chr.runtime.onMessage, function (request, sender, sendResponse) {
+					var result = listener(request);
+					if (typeof(sendResponse) == 'function')
+						sendResponse({
+							result : result
+						});
+					return true;
+				});
 			this.handlers.push(eh);
 			return eh;
 		},
@@ -597,8 +682,14 @@
 			});
 			this.handlers = null;
 		},
-		getError : function() {
-			if (this.chr&&this.chr.runtime) return this.chr.runtime.lastError;
+		getError : function () {
+			if (this.chr && this.chr.runtime)
+				return this.chr.runtime.lastError;
+		},
+		openOptions : function () {
+			return new Promise(function (resolve, reject) {
+				chrome.runtime.openOptionsPage(resolve);
+			});
 		}
 	};
 

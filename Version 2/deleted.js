@@ -24,8 +24,8 @@
 			var app = bgPage.app;
 
 			list.listable({
-				items:'li>div:has(a)',
-				isEnabled: function() {
+				items : 'li>div:has(a)',
+				isEnabled : function () {
 					return !menu.is(':visible');
 				}
 			});
@@ -122,11 +122,12 @@
 
 			var doneTimeout;
 			function notifyDone() {
-				if (doneTimeout) clearTimeout(doneTimeout);
-				doneTimeout=setTimeout(function() {
-					api.notify('Bookmarks restored');
-					refresh();
-				},500);
+				if (doneTimeout)
+					clearTimeout(doneTimeout);
+				doneTimeout = setTimeout(function () {
+						api.notify('Bookmarks restored');
+						refresh();
+					}, 500);
 			}
 
 			function restoreBookmarks() {
@@ -164,13 +165,17 @@
 									bookmarks.forEach(function (bm) {
 										bm.parentId = parent.id;
 									});
-									var ids=bookmarks.map(function(bm) { return bm.id; });
+									var ids = bookmarks.map(function (bm) {
+											return bm.id;
+										});
 									api.createBookmarks(bookmarks);
 									api.removeDeletedBookmarksByIds(ids).then(notifyDone);
 								});
 							});
 						} else {
-							var ids=bookmarks.map(function(bm) { return bm.id; });
+							var ids = bookmarks.map(function (bm) {
+									return bm.id;
+								});
 							api.createBookmarks(bookmarks).then(function () {
 								api.removeDeletedBookmarksByIds(ids).then(notifyDone);
 							});
@@ -180,15 +185,15 @@
 			}
 
 			menu.contextMenu({
-				anchor:menuImg,
-				executeCommand:executeMenuCommand
+				anchor : menuImg,
+				executeCommand : executeMenuCommand
 			});
 
 			function refresh() {
 				$(context).trigger('refresh');
 				list.empty();
 				api.getDeletedBookmarks().then(function (bookmarks) {
-					if (!bookmarks||!bookmarks.length) {
+					if (!bookmarks || !bookmarks.length) {
 						menuImg.hide();
 						liToggleAll.hide();
 						liRestore.hide();

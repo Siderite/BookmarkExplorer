@@ -27,14 +27,13 @@
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
 
-
 			tree.listable({
-				items:'li>div:has(a)',
-				isEnabled: function() {
+				items : 'li>div:has(a)',
+				isEnabled : function () {
 					return !menu.is(':visible') && !copyPaste.is(':visible');
 				},
-				findCurrent:function(items) {
-					var index=0;
+				findCurrent : function (items) {
+					var index = 0;
 					items.each(function (idx) {
 						if ($(this).is('.selected')) {
 							index = idx;
@@ -84,7 +83,9 @@
 					var par = $(this).parent();
 					par.addClass('selected');
 				});
-				tree.find('.selected').bringIntoView({parent:tree});
+				tree.find('.selected').bringIntoView({
+					parent : tree
+				});
 				refreshMenuOptions();
 			}
 
@@ -135,7 +136,7 @@
 			}
 
 			function refreshMenuOptions() {
-				var hasData=!!(currentData&&currentData.folder);
+				var hasData = !!(currentData && currentData.folder);
 				liToggleAll.toggle(hasData);
 				liToggleBefore.toggle(hasData);
 				var ul = tree.find('>ul');
@@ -229,9 +230,9 @@
 			});
 
 			menu.contextMenu({
-				anchor:menuImg,
-				onOpen:refreshMenuOptions,
-				executeCommand:executeMenuCommand
+				anchor : menuImg,
+				onOpen : refreshMenuOptions,
+				executeCommand : executeMenuCommand
 			});
 
 			function executeMenuCommand(command) {

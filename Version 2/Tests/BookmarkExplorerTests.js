@@ -176,7 +176,8 @@ QUnit.test("BookmarkExplorer openManage", function (assert) {
 					"url" : "not test url"
 				},
 				"notifications" : [
-					"title 4 in title 3 (test url) is a duplicate bookmark! Using the one in title 1@2"
+					"Using the one in \"title 1\"@2",
+					"\"title 4\" in \"title 3\" (test url) is a duplicate!"
 				],
 				"path" : "title 1",
 				"prev" : {
@@ -271,7 +272,8 @@ QUnit.test("BookmarkExplorer getInfo", function (assert) {
 						"url" : "not test url"
 					},
 					"notifications" : [
-						"title 4 in title 3 (test url) is a duplicate bookmark! Using the one in title 1@2"
+						"Using the one in \"title 1\"@2",
+						"\"title 4\" in \"title 3\" (test url) is a duplicate!"
 					],
 					"path" : "title 1",
 					"prev" : {
@@ -353,8 +355,8 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 		url : "test url"
 	};
 	var api = {
-		getExtensionUrlFile:[],
-		getTabsByUrlUrl:[],
+		getExtensionUrlFile : [],
+		getTabsByUrlUrl : [],
 		getExtensionUrl : function (file) {
 			api.getExtensionUrlFile.push(file);
 			return "ext:" + file;
@@ -370,7 +372,7 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 	app.refreshManage(currentTab);
 	var a = assert.async()
 		stringFunctions(function () {
-			assert.deepEqual(api.getExtensionUrlFile, ["manage.html","deleted.html"], "BookmarkExplorer refreshManage gets the correct URL for manage.html and deleted.html");
+			assert.deepEqual(api.getExtensionUrlFile, ["manage.html", "deleted.html"], "BookmarkExplorer refreshManage gets the correct URL for manage.html and deleted.html");
 			assert.equal(api.getTabsByUrlUrl, "ext:manage.html", "BookmarkExplorer refreshManage searches the tab for manage.html");
 		}, a);
 });
@@ -415,6 +417,14 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 			api.getTreeCalled = 0;
 			api.removeMenuItemCalls = [];
 			api.createMenuItemCalls = [];
+		},
+		getSettings : function () {
+			return Promise.resolve({
+				prevNextContext : true,
+				manageContext : true,
+				readLaterContext : true,
+				readLaterFolderName : 'Read Later'
+			});
 		}
 	};
 	var app = new BookmarkExplorer(api, true); //avoid initial refresh
@@ -438,6 +448,9 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 			assert.deepEqual(api.createMenuItemCalls, [{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
+					}, {
+						"0" : "readLater",
+						"1" : "Read link later"
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
@@ -485,6 +498,9 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}, {
 						"0" : "nextBookmark",
 						"1" : "Navigate to next bookmark (Ctrl-Shift-L)"
+					}, {
+						"0" : "readLater",
+						"1" : "Read link later"
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
@@ -526,7 +542,8 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
 			assert.deepEqual(api.removeMenuItemCalls, [], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
-			assert.deepEqual(api.createMenuItemCalls, [{
+			assert.deepEqual(api.createMenuItemCalls,
+				[{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
 					}, {
@@ -535,6 +552,9 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}, {
 						"0" : "nextBookmark",
 						"1" : "Navigate to next bookmark (Ctrl-Shift-L)"
+					}, {
+						"0" : "readLater",
+						"1" : "Read link later"
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 		}, a);

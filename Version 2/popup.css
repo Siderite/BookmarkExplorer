@@ -27,3 +27,15 @@ button[disabled=disabled], button:disabled {
     margin: 10px auto 0;
     display: block;
 }
+#divHeader img {
+	float:right;
+	cursor:pointer;
+	width:15px;
+	height:15px;
+}
+#divHeader img:hover {
+	zoom:1.1;
+}
+#divHeader{
+	height:10px;
+}

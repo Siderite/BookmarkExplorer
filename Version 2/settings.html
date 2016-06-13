@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Siderite's Bookmark Explorer - settings</title>
+	<script src="jquery-2.2.2.min.js"></script>
+	<script src="ApiWrapper.js"></script>
+	<script src="settings.js"></script>
+	<link rel="stylesheet" type="text/css" href="settings.css" media="all">
+  </head>
+  <body>
+		<h2>Help</h2>
+		<div id="divInfo">
+			<ul>
+			<li>Assuming the current browsed page is bookmarked, you can navigate to the next or the previous URL from the same bookmark folder</li>
+			<li>You can use context menus, keyboard shortcuts or the buttons in the extension popup to navigate</li>
+			<li>You can open a management page for the current bookmark folder, allowing you to select and remove read URLs</li>
+			<li>In case you delete bookmarks by mistake, there is a deleted items page that allows you to restore what was deleted</li>
+			<li>The Read Later functionality allows you to directly bookmark a link</li>
+			<li>The extension allows for importing/exporting of links as a simple list of URLs</li>
+			</ul>
+		</div>
+		<h2>Settings</h2>
+		<ul id="ulSettings">
+		<li>
+		<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Next bookmark context menu</label>
+		</li><li>
+		<input type="checkbox" id="chkManageContext"/><label for="chkManageContext">Enable Manage context menu</label>
+		</li><li>
+		<input type="checkbox" id="chkReadLaterContext"/><label for="chkReadLaterContext">Enable Read Later context menu</label>
+		</li><li>
+		<label for="txtReadLaterFolderName">Read Later folder name</label><input type="text" id="txtReadLaterFolderName"/>
+		</li><li>
+		<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
+		<div id="divShortcuts">
+			The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link<br/>
+			The default shortcuts are <i>Ctrl-Shift-K</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+		</div>
+		</li>
+		</ul>
+  </body>
+</html>

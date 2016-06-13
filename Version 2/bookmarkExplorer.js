@@ -57,8 +57,8 @@
 			}
 
 			if (self.api.onCommand) {
-				self.api.onCommand(function (command) {
-					self.execute(command);
+				self.api.onCommand(function () {
+					self.execute.apply(self, arguments);
 				});
 			}
 			if (!noInitialRefresh) {
@@ -80,6 +80,12 @@
 				});
 			});
 		},
+		openSettings : function (url) {
+			var self = this;
+			/*var settingsUrl = self.api.getExtensionUrl('settings.html');
+			self.api.selectOrNew(settingsUrl);*/
+			self.api.openOptions();
+		},
 		openDeleted : function (url) {
 			var self = this;
 			var deletedUrl = self.api.getExtensionUrl('deleted.html');
@@ -96,8 +102,8 @@
 		},
 		refreshManage : function (currentTab) {
 			var self = this;
-			var manageUrl=self.api.getExtensionUrl('manage.html');
-			var ownUrls = [manageUrl,self.api.getExtensionUrl('deleted.html')];
+			var manageUrl = self.api.getExtensionUrl('manage.html');
+			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html')];
 			if (ownUrls.includes(currentTab.url))
 				return;
 			self.api.getTabsByUrl(manageUrl).then(function (tabs) {
@@ -112,28 +118,124 @@
 		refreshIconAndMenu : function (currentTab) {
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
-			self.getInfo(currentTab.url).then(function (data) {
-				self.api.createMenuItem('manage', 'Manage bookmark folder');
-				self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
-				if (data && data.prev) {
-					self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-K)');
-				} else {
-					self.api.removeMenuItem('prevBookmark');
-				}
-				if (data && data.next) {
-					self.api.createMenuItem('nextBookmark', 'Navigate to next bookmark (Ctrl-Shift-L)');
-				} else {
-					self.api.removeMenuItem('nextBookmark');
-				}
+			self.api.getSettings().then(function (settings) {
+				self.getInfo(currentTab.url).then(function (data) {
+					if (settings.manageContext) {
+						self.api.createMenuItem('manage', 'Manage bookmark folder');
+					} else {
+						self.api.removeMenuItem('manage');
+					}
+					self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
+					if (data && data.prev && settings.prevNextContext) {
+						self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-K)');
+					} else {
+						self.api.removeMenuItem('prevBookmark');
+					}
+					if (data && data.next && settings.prevNextContext) {
+						self.api.createMenuItem('nextBookmark', 'Navigate to next bookmark (Ctrl-Shift-L)');
+					} else {
+						self.api.removeMenuItem('nextBookmark');
+					}
+					if (settings.readLaterContext) {
+						self.api.createMenuItem('readLater', 'Read link later');
+					} else {
+						self.api.removeMenuItem('readLater');
+					}
+				});
 			});
 		},
-		execute : function (command) {
+		addReadLaterBookmark : function (bm) {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				self.api.getSettings().then(function (settings) {
+					self.api.getBookmarksBar().then(function (bar) {
+						self.api.getBookmarksByTitle(settings.readLaterFolderName).then(function (bms) {
+							var rl = bms.filter(function (itm) {
+									return itm.parentId == bar.id;
+								})[0];
+							if (!rl) {
+								self.api.createBookmarks({
+									parentId : bar.id,
+									title : settings.readLaterFolderName
+								}).then(function () {
+									self.addReadLaterBookmark(bm).then(resolve);
+								});
+								return;
+							}
+							self.api.getBookmarksByUrl(bm.url, 3, rl).then(function (existing) {
+								self.api.removeBookmarksById(existing.map(function (itm) {
+										return itm.id;
+									})).then(function () {
+									bm.parentId = rl.id;
+									self.api.createBookmarks(bm).then(resolve);
+								});
+							});
+						});
+					});
+				});
+			});
+		},
+		readLater : function (url) {
+			var self = this;
+			var data = {
+				url : url,
+				title : null
+			};
+			self.api.newTab(url, true).then(function (tab) {
+				var tm = null;
+				var eh = null;
+				var f = function (timeout) {
+					if (tm)
+						clearTimeout(tm);
+					tm = setTimeout(function () {
+							self.addReadLaterBookmark({
+								url : data.url,
+								title : data.title
+							}).then(function () {
+								if (eh)
+									eh.remove();
+								self.api.closeTab(tab.id);
+							});
+						}, timeout);
+				};
+				eh = self.api.onUpdatedTab(function (tabId, changeInfo, updatedTab) {
+						if (tab.id == tabId && changeInfo && (changeInfo.url || changeInfo.title || changeInfo.favIconUrl)) {
+							var timeout;
+							if (changeInfo.url)
+								timeout = 6000;
+							if (changeInfo.title)
+								timeout = 3000;
+							if (changeInfo.favIconUrl)
+								timeout = 1000;
+							data.title = updatedTab.title;
+							data.url = updatedTab.url;
+							f(timeout);
+						}
+					});
+				f(10000);
+			});
+		},
+		execute : function (command, info) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
 				switch (command) {
-					case 'manage':
-						self.openManage(tab.url);
+				case 'manage':
+					self.openManage(tab.url);
+					return;
+				case 'settings':
+					self.openSettings();
+					return;
+				case 'readLater':
+					if (!info)
 						return;
+					if (info.linkUrl) {
+						self.readLater(info.linkUrl);
+						return;
+					}
+					if (info.pageUrl && confirm('No link selected. Do you want me to bookmark the whole page?')) {
+						self.addReadLaterBookmark({url:tab.url,title:tab.title});
+					}
+					return;
 				}
 				self.getInfo(tab.url).then(function (data) {
 					switch (command) {
@@ -177,16 +279,18 @@
 					function walk(tree, path) {
 						var result = null;
 
-						function max(str,size) {
-							if (!str) return '';
-							if (str.length<=size-1) return str;
-							return str.substr(0,size)+'\u2026';
+						function max(str, size) {
+							if (!str)
+								return '';
+							if (str.length <= size - 1)
+								return str;
+							return str.substr(0, size) + '\u2026';
 						}
 
 						function setResultOrNotify(r, itm) {
 							if (result) {
-								result.notifications.push('Using the one in "' + max(result.folder.title,20) + '"@' + (result.index + 1));
-								result.notifications.push('"'+max(r.current.title,50)+'" in "' + max(r.folder.title,20) + '" (' + max(r.current.url,50) + ') is a duplicate!');
+								result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
+								result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
 							} else {
 								result = r;
 							}
