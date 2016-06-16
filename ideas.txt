@@ -1,0 +1,3 @@
+- store deleted bookmarks no matter how deletes them
+- configure time to wait for a page to close before creating bookmark
+- have multiple configurable folders when adding to them to read later

@@ -196,7 +196,9 @@
 							}).then(function () {
 								if (eh)
 									eh.remove();
-								self.api.closeTab(tab.id);
+								setTimeout(function() {
+									self.api.closeTab(tab.id);
+								},100);
 							});
 						}, timeout);
 				};
