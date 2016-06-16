@@ -87,6 +87,7 @@ span>img {
     margin: 0;
     cursor: pointer;
 	padding: 5px 10px;
+	white-space:nowrap;
 }
 .ui-menu .ui-menu-item:hover {
 	background:#F0F0F0;
@@ -95,4 +96,15 @@ span>img {
     background: #E0E0E0;
     font-weight: bold;
     padding: 2px;
+}
+#divFilter {
+	padding-left:30px;
+}
+#divFilter label {
+	margin-right:10px;
+}
+#divFilter img {
+	vertical-align:middle;
+	margin-left:3px;
+	cursor:pointer;
 }

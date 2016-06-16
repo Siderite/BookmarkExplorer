@@ -104,12 +104,14 @@
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html')];
-			if (ownUrls.includes(currentTab.url))
-				return;
 			self.api.getTabsByUrl(manageUrl).then(function (tabs) {
 				var tab = tabs[0];
 				if (!tab)
 					return;
+				if (ownUrls.includes(currentTab.url)) {
+					self.api.sendMessage(tab.id, "current");
+					return;
+				}
 				self.getInfo(currentTab.url).then(function (data) {
 					self.api.sendMessage(tab.id, data);
 				});

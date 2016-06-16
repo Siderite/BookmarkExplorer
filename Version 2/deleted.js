@@ -16,6 +16,11 @@
 		var liToggleAll = $('li[data-command=toggleAll]', menu);
 		var liRestore = $('li[data-command=restore]', menu);
 		var liClearAll = $('li[data-command=clearAll]', menu);
+		var divFilter = $('#divFilter', context);
+
+		divFilter.find('img').click(function () {
+			divFilter.find('input').val('').trigger('change');
+		});
 
 		var api = new ApiWrapper(chrome);
 
@@ -25,26 +30,16 @@
 
 			list.listable({
 				items : 'li>div:has(a)',
+				filter : divFilter.find('input'),
 				isEnabled : function () {
 					return !menu.is(':visible');
 				}
-			});
-
-			$(context).on('keydown', function (e) {
-				if (menu.is(':visible'))
-					return;
-				switch (e.which) {
-				case 38: //Up
-				case 40: //Down
-				case 32: //Space
-					e.preventDefault();
-					break;
-				}
-
+			}).on('filter', function () {
+				refreshRestore();
 			});
 
 			function toggleAll(elem) {
-				var inputs = elem.find('input[type=checkbox]');
+				var inputs = elem.find('input[type=checkbox]:nothidden');
 				var checked = inputs.filter(function () {
 						return $(this).is(':checked');
 					}).length / inputs.length >= 0.5;
@@ -70,7 +65,7 @@
 			}
 
 			function refreshRestore() {
-				liRestore.toggle(!!list.find('input[type=checkbox]:checked').length);
+				liRestore.toggle(!!list.find('input[type=checkbox]:nothidden:checked').length);
 			}
 
 			function createItem(itm) {
@@ -108,8 +103,9 @@
 					toggleAll(list);
 					break;
 				case 'restore':
-					restoreBookmarks();
-					refresh();
+					if (restoreBookmarks()) {
+						refresh();
+					}
 					break;
 				case 'clearAll':
 					if (confirm('Are you sure you want to permanently clear all deleted bookmarks?')) {
@@ -131,57 +127,59 @@
 			}
 
 			function restoreBookmarks() {
-				var items = list.find('input[type=checkbox]:checked');
+				var items = list.find('input[type=checkbox]:nothidden:checked');
 				if (!confirm('Are you sure you want to restore ' + items.length + ' bookmarks?'))
 					return;
 
-				var newFolder = false;
+				var bookmarks = [];
 				list.find('ul').each(function () {
 					var ul = $(this);
-					items = ul.find('input[type=checkbox]:checked');
-					var bookmarks = items.get().map(function (itm) {
-							return $(itm).data('bookmark');
-						});
+					items = ul.find('input[type=checkbox]:nothidden:checked');
+					bookmarks = bookmarks.concat(items.get().map(function (itm) {
+								return $(itm).data('bookmark');
+							}));
+				});
 
-					var parentIds = {};
-					bookmarks.forEach(function (bm) {
-						if (bm.parentId)
-							parentIds[bm.parentId] = true;
-					});
-					parentIds = Object.keys(parentIds);
-					api.getBookmarksByIds(parentIds).then(function (parentBookmarks) {
-						if (!parentBookmarks || parentBookmarks.filter(function (bm) {
-								return !!bm;
-							}).length != parentIds.length) {
-							api.getBookmarksBar().then(function (bar) {
-								if (!newFolder) {
-									newFolder = true;
-									api.notify('Some parent bookmarks are missing, restoring in new folder on the bookmarks bar.');
-								}
-								api.createBookmarks({
-									title : 'Undeleted items',
-									parentId : bar.id
-								}).then(function (parent) {
-									bookmarks.forEach(function (bm) {
-										bm.parentId = parent.id;
+				var newFolder = false;
+				var parentIds = {};
+				bookmarks.forEach(function (bm) {
+					if (bm.parentId)
+						parentIds[bm.parentId] = true;
+				});
+				parentIds = Object.keys(parentIds);
+				api.getBookmarksByIds(parentIds).then(function (parentBookmarks) {
+					if (!parentBookmarks || parentBookmarks.filter(function (bm) {
+							return !!bm;
+						}).length != parentIds.length) {
+						api.getBookmarksBar().then(function (bar) {
+							if (!newFolder) {
+								newFolder = true;
+								api.notify('Some parent bookmarks are missing, restoring in new folder on the bookmarks bar.');
+							}
+							api.createBookmarks({
+								title : 'Undeleted items',
+								parentId : bar.id
+							}).then(function (parent) {
+								bookmarks.forEach(function (bm) {
+									bm.parentId = parent.id;
+								});
+								var ids = bookmarks.map(function (bm) {
+										return bm.id;
 									});
-									var ids = bookmarks.map(function (bm) {
-											return bm.id;
-										});
-									api.createBookmarks(bookmarks);
-									api.removeDeletedBookmarksByIds(ids).then(notifyDone);
-								});
-							});
-						} else {
-							var ids = bookmarks.map(function (bm) {
-									return bm.id;
-								});
-							api.createBookmarks(bookmarks).then(function () {
+								api.createBookmarks(bookmarks);
 								api.removeDeletedBookmarksByIds(ids).then(notifyDone);
 							});
-						}
-					});
+						});
+					} else {
+						var ids = bookmarks.map(function (bm) {
+								return bm.id;
+							});
+						api.createBookmarks(bookmarks).then(function () {
+							api.removeDeletedBookmarksByIds(ids).then(notifyDone);
+						});
+					}
 				});
+				return true;
 			}
 
 			menu.contextMenu({
@@ -198,27 +196,35 @@
 						liToggleAll.hide();
 						liRestore.hide();
 						liClearAll.hide();
-						header.text('No data available');
+						header.text('No deleted bookmarks found');
+						divFilter.hide();
 						return;
 					}
 					menuImg.show();
 					liToggleAll.show();
 					liRestore.hide();
 					liClearAll.show();
+					divFilter.show();
 					header.text('Deleted bookmarks');
-					bookmarks.reverse().forEach(function (bms) {
+					bookmarks.reverse().forEach(function (bms,idx) {
 						api.getBookmarksByIds(bms.map(function (bm) {
 								return bm.parentId;
 							})).then(function (parents) {
 							var title = parents.length ? parents[0].title : 'Unknown folder';
 							createTree(bms, title);
+							if (idx==0) list.trigger('filter');
 						});
 					})
+					
 				});
 			}
 
+			var refreshTimeout=null;
 			if (api.onRemovedBookmark) {
-				api.onRemovedBookmark(refresh);
+				api.onRemovedBookmark(function() {
+					if (refreshTimeout) clearTimeout(refreshTimeout);
+					refreshTimeout=setTimeout(refresh,100);
+				});
 			}
 			refresh();
 

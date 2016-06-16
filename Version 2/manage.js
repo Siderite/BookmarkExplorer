@@ -26,9 +26,15 @@
 			var liRemoveBookmarks = $('li[data-command=delete]', menu);
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
+			var divFilter = $('#divFilter', context);
+
+			divFilter.find('img').click(function() {
+				divFilter.find('input').val('').trigger('change');
+			});
 
 			tree.listable({
 				items : 'li>div:has(a)',
+				filter : divFilter.find('input'),
 				isEnabled : function () {
 					return !menu.is(':visible') && !copyPaste.is(':visible');
 				},
@@ -42,9 +48,17 @@
 					});
 					return index;
 				}
+			}).on('filter',function() {
+				refreshMenuOptions();
 			});
 
-			api.onMessage(refresh);
+			api.onMessage(function(data) {
+				if (data=='current') {
+					refreshFromCurrent();
+				} else {
+					refresh(data);
+				}
+			});
 
 			function refreshFromCurrent() {
 				if (!currentData || !currentData.current) {
@@ -65,6 +79,7 @@
 					}
 				});
 				currentData = data;
+				divFilter.hide();
 				tree.empty();
 				if (!data || !data.folder) {
 					header.text('Bookmark for the URL not found');
@@ -72,6 +87,7 @@
 					refreshMenuOptions();
 					return;
 				}
+				divFilter.show();
 				header.text(data.folder.title);
 				subheader.empty();
 				createTree(data.folder, checkData);
@@ -83,10 +99,11 @@
 					var par = $(this).parent();
 					par.addClass('selected');
 				});
-				tree.find('.selected').bringIntoView({
+				tree.find('.selected:visible').bringIntoView({
 					parent : tree
 				});
-				refreshMenuOptions();
+				tree.trigger('filter');
+				//refreshMenuOptions(); //replaced by trigger
 			}
 
 			function createTree(folder, checkData) {
@@ -140,7 +157,7 @@
 				liToggleAll.toggle(hasData);
 				liToggleBefore.toggle(hasData);
 				var ul = tree.find('>ul');
-				var checkedInputs = ul.find('input:checked');
+				var checkedInputs = ul.find('input:nothidden:checked');
 				liRemoveBookmarks.toggle(!!checkedInputs.length);
 
 				api.getDeletedBookmarks().then(function (bookmarks) {
@@ -152,8 +169,8 @@
 
 			function refreshCounts() {
 				var ul = tree.find('>ul');
-				var inputs = ul.find('input');
-				var checkedInputs = ul.find('input:checked');
+				var inputs = ul.find('input:nothidden');
+				var checkedInputs = ul.find('input:nothidden:checked');
 				counts.find('span').text(inputs.length
 					 ? checkedInputs.length + '/' + inputs.length
 					 : '');
@@ -161,7 +178,7 @@
 
 			function copyURLsToClipboard() {
 				var list = [];
-				tree.find('>ul a[href]').each(function () {
+				tree.find('>ul a[href]:nothidden').each(function () {
 					var href = $(this).attr('href');
 					list.push(href);
 				});
@@ -260,22 +277,23 @@
 
 			function toggleAll() {
 				var ul = tree.find('>ul');
-				var val = ul.find('>li>div>input:checked').length < ul.find('>li>div>input:not(:checked)').length;
-				ul.find('>li>div>input').prop('checked', val);
+				var val = ul.find('>li>div:nothidden>input:checked').length < ul.find('>li>div:nothidden>input:not(:checked)').length;
+				ul.find('>li>div:nothidden>input').prop('checked', val);
 				refreshMenuOptions();
 			}
 
 			function toggleBefore() {
 				var ul = tree.find('>ul');
-				var index = ul.find('>li:has(div.selected)').index();
-				var val = ul.find('>li>div>input:lt(' + index + '):checked').length < ul.find('>li>div>input:lt(' + index + '):not(:checked)').length;
-				ul.find('>li>div>input:lt(' + index + ')').prop('checked', val);
+				var index = ul.find('>li:has(div.selected:nothidden)').index();
+				if (index<0) return;
+				var val = ul.find('>li>div:nothidden>input:lt(' + index + '):checked').length < ul.find('>li>div:nothidden>input:lt(' + index + '):not(:checked)').length;
+				ul.find('>li>div:nothidden>input:lt(' + index + ')').prop('checked', val);
 				refreshMenuOptions();
 			}
 
 			function removeBookmarks() {
 				var ul = tree.find('>ul');
-				var inputs = ul.find('input:checked');
+				var inputs = ul.find('input:nothidden:checked');
 				if (!inputs.length)
 					return;
 				if (!confirm('Are you sure you want to delete ' + inputs.length + ' bookmarks?'))
