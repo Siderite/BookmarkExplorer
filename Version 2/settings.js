@@ -14,6 +14,8 @@
 		var chkManageContext = $('#chkManageContext', context);
 		var chkReadLaterContext = $('#chkReadLaterContext', context);
 		var txtReadLaterFolderName = $('#txtReadLaterFolderName', context);
+		var txtReadLaterPageTimeout = $('#txtReadLaterPageTimeout', context);
+		var chkStoreAllDeletedBookmarks = $('#chkStoreAllDeletedBookmarks', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -38,6 +40,18 @@
 			.val(settings.readLaterFolderName)
 			.on('keyup paste', function () {
 				settings.readLaterFolderName = $(this).val();
+				api.setSettings(settings);
+			});
+			txtReadLaterPageTimeout
+			.val(settings.readLaterPageTimeout/1000)
+			.on('keyup paste', function () {
+				settings.readLaterPageTimeout = (+($(this).val())||10)*1000;
+				api.setSettings(settings);
+			});
+			chkStoreAllDeletedBookmarks
+			.prop('checked', settings.storeAllDeletedBookmarks)
+			.click(function () {
+				settings.storeAllDeletedBookmarks = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 		});

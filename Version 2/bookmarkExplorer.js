@@ -41,7 +41,29 @@
 				self.api.onCreatedBookmark(refresh);
 			}
 			if (self.api.onRemovedBookmark) {
-				self.api.onRemovedBookmark(refresh);
+				self.api.onRemovedBookmark(function(id,data) {
+					self.api.getSettings().then(function(settings) {
+						if (settings.storeAllDeletedBookmarks) {
+							if (data&&data.node) {
+								var bookmark=data.node;
+								bookmark.index=data.index;
+								bookmark.parentId=data.parentId;
+								var bookmarks=[];
+								var f=function(bm) {
+									if (bm.url) {
+										bookmarks.push(bm);
+									} else if (bm.children&&bm.children.length) {
+										bm.children.forEach(f);
+									}
+								};
+								f(bookmark);
+								self.api.addDeletedBookmarks(bookmarks).then(refresh);
+							}
+						} else {
+							refresh();
+						}
+					});
+				});
 			}
 			if (self.api.onChangedBookmark) {
 				self.api.onChangedBookmark(refresh);
@@ -184,39 +206,41 @@
 				title : null
 			};
 			self.api.newTab(url, true).then(function (tab) {
-				var tm = null;
-				var eh = null;
-				var f = function (timeout) {
-					if (tm)
-						clearTimeout(tm);
-					tm = setTimeout(function () {
-							self.addReadLaterBookmark({
-								url : data.url,
-								title : data.title
-							}).then(function () {
-								if (eh)
-									eh.remove();
-								setTimeout(function() {
-									self.api.closeTab(tab.id);
-								},100);
-							});
-						}, timeout);
-				};
-				eh = self.api.onUpdatedTab(function (tabId, changeInfo, updatedTab) {
-						if (tab.id == tabId && changeInfo && (changeInfo.url || changeInfo.title || changeInfo.favIconUrl)) {
-							var timeout;
-							if (changeInfo.url)
-								timeout = 6000;
-							if (changeInfo.title)
-								timeout = 3000;
-							if (changeInfo.favIconUrl)
-								timeout = 1000;
-							data.title = updatedTab.title;
-							data.url = updatedTab.url;
-							f(timeout);
-						}
-					});
-				f(10000);
+				self.api.getSettings().then(function (settings) {
+					var tm = null;
+					var eh = null;
+					var f = function (timeout) {
+						if (tm)
+							clearTimeout(tm);
+						tm = setTimeout(function () {
+								self.addReadLaterBookmark({
+									url : data.url,
+									title : data.title
+								}).then(function () {
+									if (eh)
+										eh.remove();
+									setTimeout(function () {
+										self.api.closeTab(tab.id);
+									}, 0.05 * settings.readLaterPageTimeout);
+								});
+							}, timeout);
+					};
+					eh = self.api.onUpdatedTab(function (tabId, changeInfo, updatedTab) {
+							if (tab.id == tabId && changeInfo && (changeInfo.url || changeInfo.title || changeInfo.favIconUrl)) {
+								var timeout;
+								if (changeInfo.url)
+									timeout = 0.6 * settings.readLaterPageTimeout;
+								if (changeInfo.title)
+									timeout = 0.3 * settings.readLaterPageTimeout;
+								if (changeInfo.favIconUrl)
+									timeout = 0.1 * settings.readLaterPageTimeout;
+								data.title = updatedTab.title;
+								data.url = updatedTab.url;
+								f(timeout);
+							}
+						});
+					f(0.6 * settings.readLaterPageTimeout);
+				});
 			});
 		},
 		execute : function (command, info) {
@@ -237,7 +261,10 @@
 						return;
 					}
 					if (info.pageUrl && confirm('No link selected. Do you want me to bookmark the whole page?')) {
-						self.addReadLaterBookmark({url:tab.url,title:tab.title});
+						self.addReadLaterBookmark({
+							url : tab.url,
+							title : tab.title
+						});
 					}
 					return;
 				}

@@ -172,10 +172,12 @@
 					return;
 				}
 				var data = {
-					prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? true : !!settings.prevNextContext,
-					manageContext : typeof(settings.manageContext) == 'undefined' ? true : !!settings.manageContext,
+					prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? false : !!settings.prevNextContext,
+					manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
 					readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
-					readLaterFolderName : settings.readLaterFolderName || 'Read Later'
+					readLaterFolderName : settings.readLaterFolderName || 'Read Later',
+					readLaterPageTimeout: +(settings.readLaterPageTimeout) || 15000,
+					storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks
 				};
 				self.setData(self.settingsKey, data).then(function () {
 					resolve(data);
