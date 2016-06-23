@@ -43,6 +43,19 @@
 		return 3; //same host and parameters and hash
 	};
 
+	ApiWrapper.throttle = function(f,time) {
+		time=+(time)||500;
+		var timeout=null;
+		return function() {
+			var self=this;
+			var args=arguments;
+			if (timeout) clearTimeout(timeout);
+			timeout=setTimeout(function() {
+				f.apply(self,args);
+			},time);
+		};
+	};
+
 	ApiWrapper.getIconForUrl = function (url) {
 		return 'chrome://favicon/' + url;
 	};

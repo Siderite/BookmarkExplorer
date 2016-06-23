@@ -41,6 +41,13 @@
 				self.api.onCreatedBookmark(refresh);
 			}
 			if (self.api.onRemovedBookmark) {
+				var bookmarksToStore=[];
+				var removeBookmarksThrottled=ApiWrapper.throttle(function() {
+					self.api.addDeletedBookmarks(bookmarksToStore).then(function() {
+						bookmarksToStore.splice(0,10000);
+						refresh();
+					});
+				});
 				self.api.onRemovedBookmark(function(id,data) {
 					self.api.getSettings().then(function(settings) {
 						if (settings.storeAllDeletedBookmarks) {
@@ -48,16 +55,17 @@
 								var bookmark=data.node;
 								bookmark.index=data.index;
 								bookmark.parentId=data.parentId;
-								var bookmarks=[];
-								var f=function(bm) {
-									if (bm.url) {
-										bookmarks.push(bm);
-									} else if (bm.children&&bm.children.length) {
-										bm.children.forEach(f);
-									}
-								};
-								f(bookmark);
-								self.api.addDeletedBookmarks(bookmarks).then(refresh);
+								(function() {
+									var f=function(bm) {
+										if (bm.url) {
+											bookmarksToStore.push(bm);
+										} else if (bm.children&&bm.children.length) {
+											bm.children.forEach(f);
+										}
+									};
+									f(bookmark);
+								})();
+								removeBookmarksThrottled();
 							}
 						} else {
 							refresh();

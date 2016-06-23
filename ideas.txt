@@ -1,3 +1,9 @@
-- store deleted bookmarks no matter how deletes them
-- configure time to wait for a page to close before creating bookmark
+*- chrome onbookmarkdeleted doesn't work for more items at the same time!!
+*- store deleted bookmarks no matter how deletes them
+*- configure time to wait for a page to close before creating bookmark
 - have multiple configurable folders when adding to them to read later
+- don't delete and add bookmarks, just don't add them
+- create web page from selected items (drag and drop to reorder)
+- mention that Bookmark Explorer does not connect to a web server
+- mention that uninstalling and installing the extension removes deleted items
+- auto remove deleted bookmarks after a set time?

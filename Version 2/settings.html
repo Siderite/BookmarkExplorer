@@ -15,7 +15,7 @@
 			<li>You can use context menus, keyboard shortcuts or the buttons in the extension popup to navigate</li>
 			<li>You can open a management page for the current bookmark folder, allowing you to select and remove read URLs</li>
 			<li>In case you delete bookmarks by mistake, there is a deleted items page that allows you to restore what was deleted</li>
-			<li>The Read Later functionality allows you to directly bookmark a link</li>
+			<li>The Read Later functionality allows you to directly bookmark a link, without keeping its page open</li>
 			<li>The extension allows for importing/exporting of links as a simple list of URLs</li>
 			</ul>
 		</div>
@@ -28,11 +28,11 @@
 		</li><li>
 		<input type="checkbox" id="chkReadLaterContext"/><label for="chkReadLaterContext">Enable Read Later context menu</label>
 		</li><li>
-		<label for="txtReadLaterFolderName">Read Later folder name:</label><br/><input type="text" id="txtReadLaterFolderName"/>
+		<label for="txtReadLaterFolderName" title="The name of the folder where Read Later bookmarks will be created">Read Later folder name:</label><br/><input type="text" id="txtReadLaterFolderName"/>
 		</li><li>
-		<label for="txtReadLaterPageTimeout">Read Later page close time in seconds:</label><br/><input type="text" id="txtReadLaterPageTimeout"/>
+		<label for="txtReadLaterPageTimeout" title="In order to get the URL, title and icon after all redirections and page loads, leave this to at least 10 seconds">Read Later page close time in seconds:</label><br/><input type="text" id="txtReadLaterPageTimeout"/>
 		</li><li>
-		<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks">Store bookmarks deleted anywhere</label>
+		<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks" title="Even if you delete them manually or some other application deletes them, store them for later retrieval">Store bookmarks deleted anywhere</label>
 		</li><li>
 		<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
 		<div id="divShortcuts">

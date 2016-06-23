@@ -319,8 +319,12 @@
 								api.removeBookmarksById([p.id]).then(function () {
 									$(p.input).closest('li').remove();
 									k--;
-									if (k == 0)
+									if (k == 0) {
+										tree.find('.selected:visible').bringIntoView({
+											parent : tree
+										});
 										refreshMenuOptions();
+									}
 								});
 							});
 						};

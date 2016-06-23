@@ -3,7 +3,7 @@
 
 	"name" : "Siderite's Bookmark Explorer",
 	"description" : "Navigate through bookmark folders on a single page",
-	"version" : "2.6.0",
+	"version" : "2.6.1",
 
 	"permissions" : [
 		"tabs",
