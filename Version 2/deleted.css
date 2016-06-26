@@ -23,6 +23,12 @@ html,body {
 	float:right;
 	cursor:pointer;
 }
+#divHeader .stats {
+	margin-left:50px;
+	margin-right:10px;
+	font-size:smaller;
+	font-weight:normal;
+}
 #divList {
 	flex-grow: 1;
 	flex-shrink: 1;

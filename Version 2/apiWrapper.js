@@ -137,6 +137,13 @@
 				});
 			return promise;
 		},
+		getDataSize : function (key) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					self.chr.storage.local.getBytesInUse(key, resolve);
+				});
+			return promise;
+		},
 		getData : function (key) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
@@ -190,7 +197,8 @@
 					readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
 					readLaterFolderName : settings.readLaterFolderName || 'Read Later',
 					readLaterPageTimeout: +(settings.readLaterPageTimeout) || 15000,
-					storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks
+					storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
+					daysAutoClearDeleted: +(settings.daysAutoClearDeleted) || 0,
 				};
 				self.setData(self.settingsKey, data).then(function () {
 					resolve(data);
@@ -416,6 +424,38 @@
 			return promise;
 		},
 		deletedBookmarksKey : 'lastDeletedBookmarks',
+		ensureCleanDeletedBookmarks : function(arr) {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				if (!arr||!arr.bookmarks) {
+					resolve();
+					return;
+				}
+				self.getSettings().then(function(settings) {
+					if (!settings.daysAutoClearDeleted) {
+						resolve();
+						return;
+					}
+					var now=new Date();
+					var newbms=arr.bookmarks.filter(function(obj) {
+						var time=obj.time||new Date('2016-06-26').getTime();
+						return (now-time)<=86400000*settings.daysAutoClearDeleted;
+					});
+					if (newbms.length==arr.bookmarks.length) {
+						resolve();
+						return;
+					}
+					arr.bookmarks=newbms;
+					self.setData(self.deletedBookmarksKey, arr).then(resolve);
+				});
+			});
+		},
+		getDeletedBookmarksSize : function () {
+			var self = this;
+			return new Promise(function (resolve, reject) {
+				self.getDataSize(self.deletedBookmarksKey).then(resolve);
+			});
+		},
 		getDeletedBookmarks : function () {
 			var self = this;
 			return new Promise(function (resolve, reject) {
@@ -423,7 +463,9 @@
 					if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
 						resolve(null);
 					} else {
-						resolve(arr.bookmarks);
+						self.ensureCleanDeletedBookmarks(arr).then(function() {
+							resolve(arr.bookmarks);
+						});
 					}
 				});
 			});
@@ -436,7 +478,10 @@
 						arr = {
 							bookmarks : []
 						};
-					arr.bookmarks.push(bookmarks);
+					arr.bookmarks.push({
+						time:new Date().getTime(),
+						items:bookmarks
+					});
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
 			});
@@ -449,18 +494,18 @@
 						resolve(null);
 						return;
 					}
-					arr.bookmarks.forEach(function (bookmarks) {
+					arr.bookmarks.forEach(function (obj) {
 						var i = 0;
-						while (i < bookmarks.length) {
-							if (ids.includes(bookmarks[i].id)) {
-								bookmarks.splice(i, 1);
+						while (i < obj.bookmarks.length) {
+							if (ids.includes(obj.bookmarks[i].id)) {
+								obj.bookmarks.splice(i, 1);
 							} else {
 								i++;
 							}
 						}
 					});
-					arr.bookmarks = arr.bookmarks.filter(function (bms) {
-							return !!bms.length;
+					arr.bookmarks = arr.bookmarks.filter(function (obj) {
+							return !!obj.bookmarks.length;
 						});
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
@@ -475,7 +520,7 @@
 				self.setData(self.deletedBookmarksKey, arr).then(resolve);
 			});
 		},
-		createMenuItem : function (id, title) {
+		createMenuItem : function (id, title, parentId) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					var itm = {
@@ -483,6 +528,7 @@
 						"title" : title,
 						"contexts" : ["page", "frame", "selection", "link", "editable", "image", "video", "audio"]
 					};
+					if (parentId) itm.parentId=parentId;
 					self.chr.contextMenus.create(itm, function () {
 						self.log(self.getError());
 						resolve(itm);

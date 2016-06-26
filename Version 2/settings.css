@@ -1,6 +1,12 @@
 #ulSettings {
 	list-style:none;
 }
+#ulSettings li {
+	margin-bottom:5px;
+}
 #divShortcuts {
 	display:none;
+}
+#divSettings, #divInfo {
+	min-height:350px;
 }

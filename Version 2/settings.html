@@ -3,12 +3,18 @@
   <head>
     <title>Siderite's Bookmark Explorer - settings</title>
 	<script src="jquery-2.2.2.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
 	<script src="ApiWrapper.js"></script>
 	<script src="settings.js"></script>
+	<link rel="stylesheet" type="text/css" href="jquery-ui.min.css" media="all">
 	<link rel="stylesheet" type="text/css" href="settings.css" media="all">
   </head>
   <body>
-		<h2>Help</h2>
+	<div id="divTabs">
+		<ul>
+			<li><a href="#divInfo">Help</a></li>
+			<li><a href="#divSettings">Settings</a></li>
+		</ul>
 		<div id="divInfo">
 			<ul>
 			<li>Assuming the current browsed page is bookmarked, you can navigate to the next or the previous URL from the same bookmark folder</li>
@@ -17,32 +23,38 @@
 			<li>In case you delete bookmarks by mistake, there is a deleted items page that allows you to restore what was deleted</li>
 			<li>The Read Later functionality allows you to directly bookmark a link, without keeping its page open</li>
 			<li>The extension allows for importing/exporting of links as a simple list of URLs</li>
+			<li>The extension does not connect to outside servers, everything is stored locally (warning: uninstalling it loses the deleted bookmarks data)</li>
 			</ul>
 		</div>
-		<h2>Settings</h2>
-		<ul id="ulSettings">
-		<li>
-		<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Next bookmark context menu</label>
-		</li><li>
-		<input type="checkbox" id="chkManageContext"/><label for="chkManageContext">Enable Manage context menu</label>
-		</li><li>
-		<input type="checkbox" id="chkReadLaterContext"/><label for="chkReadLaterContext">Enable Read Later context menu</label>
-		</li><li>
-		<label for="txtReadLaterFolderName" title="The name of the folder where Read Later bookmarks will be created">Read Later folder name:</label><br/><input type="text" id="txtReadLaterFolderName"/>
-		</li><li>
-		<label for="txtReadLaterPageTimeout" title="In order to get the URL, title and icon after all redirections and page loads, leave this to at least 10 seconds">Read Later page close time in seconds:</label><br/><input type="text" id="txtReadLaterPageTimeout"/>
-		</li><li>
-		<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks" title="Even if you delete them manually or some other application deletes them, store them for later retrieval">Store bookmarks deleted anywhere</label>
-		</li><li>
-		<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
-		<div id="divShortcuts">
-			The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link<br/>
-			The default shortcuts are <i>Ctrl-Shift-K</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+		<div id="divSettings">
+			<ul id="ulSettings">
+			<li>
+			<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Next bookmark context menu</label>
+			</li><li>
+			<input type="checkbox" id="chkManageContext"/><label for="chkManageContext">Enable Manage context menu</label>
+			</li><li>
+			<input type="checkbox" id="chkReadLaterContext"/><label for="chkReadLaterContext">Enable Read Later context menu</label>
+			</li><li id="liReadLaterFolderName">
+			<label title="The name(s) of the folder(s) where Read Later bookmarks will be created">Read Later folder name(s):</label>
+			<button id="btnAddFolderName">Add Folder</button>
+			</li><li>
+			<label for="txtReadLaterPageTimeout" title="In order to get the URL, title and icon after all redirections and page loads, leave this to at least 10 seconds">Read Later page close time in seconds:</label><br/><input type="text" id="txtReadLaterPageTimeout"/>
+			</li><li>
+			<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks" title="Even if you delete them manually or some other application deletes them, store them for later retrieval">Store bookmarks deleted anywhere</label>
+			</li><li>
+			<label for="txtAutoClearDeleted" title="The records will be cleared after the number of days entered">How many days to remember deleted bookmarks:</label><br/><input type="text" id="txtAutoClearDeleted"/>
+			</li><li>
+			<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
+			<div id="divShortcuts">
+				The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link<br/>
+				The default shortcuts are <i>Ctrl-Shift-K</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+			</div>
+			</li>
+			</ul>
 		</div>
-		</li>
-		</ul>
-		<div id="divFooter">
-			<a href="http://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html" target="SideriteBlogBE">Discussion, suggestions, bug reports and help</a>
-		</div>
+	</div>
+	<div id="divFooter">
+		<a href="http://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html" target="SideriteBlogBE">Discussion, suggestions, bug reports and help</a>
+	</div>
   </body>
 </html>

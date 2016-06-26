@@ -168,46 +168,54 @@
 					} else {
 						self.api.removeMenuItem('nextBookmark');
 					}
+					self.api.removeMenuItem('readLater');
 					if (settings.readLaterContext) {
 						self.api.createMenuItem('readLater', 'Read link later');
-					} else {
-						self.api.removeMenuItem('readLater');
+						var n={};
+						(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
+							if (name) n[name]=true;
+						});
+						var names=Object.keys(n);
+						if (names.length>1) {
+							names.forEach(function(name) {
+								self.api.createMenuItem('readLater '+name,name,'readLater');
+							});
+						}
 					}
 				});
 			});
 		},
-		addReadLaterBookmark : function (bm) {
+		addReadLaterBookmark : function (bm,folderName) {
 			var self = this;
 			return new Promise(function (resolve, reject) {
-				self.api.getSettings().then(function (settings) {
 					self.api.getBookmarksBar().then(function (bar) {
-						self.api.getBookmarksByTitle(settings.readLaterFolderName).then(function (bms) {
+						self.api.getBookmarksByTitle(folderName).then(function (bms) {
 							var rl = bms.filter(function (itm) {
 									return itm.parentId == bar.id;
 								})[0];
 							if (!rl) {
 								self.api.createBookmarks({
 									parentId : bar.id,
-									title : settings.readLaterFolderName
+									title : folderName
 								}).then(function () {
-									self.addReadLaterBookmark(bm).then(resolve);
+									self.addReadLaterBookmark(bm,folderName).then(resolve);
 								});
 								return;
 							}
 							self.api.getBookmarksByUrl(bm.url, 3, rl).then(function (existing) {
-								self.api.removeBookmarksById(existing.map(function (itm) {
-										return itm.id;
-									})).then(function () {
+								if (existing&&existing.length) {
+									self.api.notify('URL already added to the Read Later list');
+									resolve(existing);
+								} else {
 									bm.parentId = rl.id;
 									self.api.createBookmarks(bm).then(resolve);
-								});
+								}
 							});
 						});
 					});
-				});
 			});
 		},
-		readLater : function (url) {
+		readLater : function (url,folderName) {
 			var self = this;
 			var data = {
 				url : url,
@@ -224,7 +232,7 @@
 								self.addReadLaterBookmark({
 									url : data.url,
 									title : data.title
-								}).then(function () {
+								},folderName).then(function () {
 									if (eh)
 										eh.remove();
 									setTimeout(function () {
@@ -254,26 +262,27 @@
 		execute : function (command, info) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
-				switch (command) {
-				case 'manage':
-					self.openManage(tab.url);
-					return;
-				case 'settings':
-					self.openSettings();
-					return;
-				case 'readLater':
+				if (command.startsWith('readLater')) {
 					if (!info)
 						return;
+					var folderName=command.substr('readLater'.length).trim()||'Read Later';
 					if (info.linkUrl) {
-						self.readLater(info.linkUrl);
+						self.readLater(info.linkUrl,folderName);
 						return;
 					}
 					if (info.pageUrl && confirm('No link selected. Do you want me to bookmark the whole page?')) {
 						self.addReadLaterBookmark({
 							url : tab.url,
 							title : tab.title
-						});
+						},folderName);
 					}
+				}
+				switch (command) {
+				case 'manage':
+					self.openManage(tab.url);
+					return;
+				case 'settings':
+					self.openSettings();
 					return;
 				}
 				self.getInfo(tab.url).then(function (data) {
@@ -282,8 +291,14 @@
 						if (!data || !data.prev) {
 							self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 								self.getInfo(url).then(function (data) {
-									if (!data || !data.prev)
+									if (!data) {
+										self.api.notify('Page not bookmarked');
 										return;
+									}
+									if (!data.prev) {
+										self.api.notify('Reached the start of the bookmark folder');
+										return;
+									}
 									if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 										self.api.setUrl(tab.id, data.prev.url);
 									}
@@ -297,8 +312,14 @@
 						if (!data || !data.next) {
 							self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 								self.getInfo(url).then(function (data) {
-									if (!data || !data.next)
+									if (!data) {
+										self.api.notify('Page not bookmarked');
 										return;
+									}
+									if (!data.next) {
+										self.api.notify('Reached the end of the bookmark folder');
+										return;
+									}
 									if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 										self.api.setUrl(tab.id, data.next.url);
 									}

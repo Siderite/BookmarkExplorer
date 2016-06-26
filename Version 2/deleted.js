@@ -10,7 +10,8 @@
 	$(function () {
 
 		var list = $('#divList', context);
-		var header = $('#divHeader span', context);
+		var header = $('#divHeader span:first', context);
+		var divStats = $('#divHeader .stats', context);
 		var menuImg = $('#divHeader img', context);
 		var menu = $('#ulMenu', context);
 		var liToggleAll = $('li[data-command=toggleAll]', menu);
@@ -47,15 +48,16 @@
 				refreshRestore();
 			}
 
-			function createTree(arr, title) {
+			function createTree(arr, title, time) {
 				var div = $('<div></div>').appendTo(list);
 				var header = $('<div></div>')
 					.addClass('treeHeader')
-					.text(title || 'Unnamed')
+					.text(title || 'Unknown')
 					.click(function () {
 						toggleAll(ul);
 					})
 					.appendTo(div);
+				if (time) header.attr('title','Deleted on '+new Date(time));
 				var ul = $('<ul></ul>').appendTo(div);
 				arr.forEach(function (child) {
 					$('<li></li>')
@@ -187,9 +189,17 @@
 				executeCommand : executeMenuCommand
 			});
 
+			function refreshStats(stats) {
+				divStats.text('('+stats.count+' items in '+(Math.round(stats.size/102.4)/10)+' KB)');
+			}
+
 			function refresh() {
 				$(context).trigger('refresh');
 				list.empty();
+				var stats={
+					count:0,
+					size:0
+				};
 				api.getDeletedBookmarks().then(function (bookmarks) {
 					if (!bookmarks || !bookmarks.length) {
 						menuImg.hide();
@@ -206,16 +216,21 @@
 					liClearAll.show();
 					divFilter.show();
 					header.text('Deleted bookmarks');
-					bookmarks.reverse().forEach(function (bms,idx) {
+					bookmarks.reverse().forEach(function (obj,idx) {
+						var bms=obj.length?obj:obj.items;
+						stats.count+=bms.length;
 						api.getBookmarksByIds(bms.map(function (bm) {
-								return bm.parentId;
-							})).then(function (parents) {
+							return bm.parentId;
+						})).then(function (parents) {
 							var title = parents.length ? parents[0].title : 'Unknown folder';
-							createTree(bms, title);
+							createTree(bms, title, obj.time);
 							if (idx==0) list.trigger('filter');
 						});
 					})
-					
+					api.getDeletedBookmarksSize().then(function(size) {
+						stats.size=size;
+						refreshStats(stats);
+					});
 				});
 			}
 
@@ -223,7 +238,7 @@
 			if (api.onRemovedBookmark) {
 				api.onRemovedBookmark(function() {
 					if (refreshTimeout) clearTimeout(refreshTimeout);
-					refreshTimeout=setTimeout(refresh,100);
+					refreshTimeout=setTimeout(refresh,1000);
 				});
 			}
 			refresh();
