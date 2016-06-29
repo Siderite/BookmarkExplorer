@@ -46,7 +46,7 @@ QUnit.test("BookmarkExplorer init", function (assert) {
 	assert.equal(api.onRemovedTabListener, refresh, "BookmarkExplorer init binds to api.onRemovedTab");
 	assert.equal(api.onActivatedTabListener, refresh, "BookmarkExplorer init binds to api.onActivatedTab");
 	assert.equal(api.onCreatedBookmarkListener, refresh, "BookmarkExplorer init binds to api.onCreatedBookmark");
-	assert.equal(api.onRemovedBookmarkListener, refresh, "BookmarkExplorer init binds to api.onRemovedBookmark");
+	assert.equal(!!api.onRemovedBookmarkListener, true, "BookmarkExplorer init binds to api.onRemovedBookmark");
 	assert.equal(api.onChangedBookmarkListener, refresh, "BookmarkExplorer init binds to api.onChangedBookmark");
 	assert.equal(api.onMovedBookmarkListener, refresh, "BookmarkExplorer init binds to api.onMovedBookmark");
 	assert.equal(api.onChildrenReorderedBookmarkListener, refresh, "BookmarkExplorer init binds to api.onChildrenReorderedBookmark");
@@ -439,12 +439,17 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, [{
-						"0" : "prevBookmark"
-					}, {
-						"0" : "nextBookmark"
-					}
-				], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.removeMenuItemCalls, [
+  {
+    "0": "prevBookmark"
+  },
+  {
+    "0": "nextBookmark"
+  },
+  {
+    "0": "readLater"
+  }
+], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
 			assert.deepEqual(api.createMenuItemCalls, [{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
@@ -488,10 +493,15 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, [{
-						"0" : "prevBookmark"
-					}
-				], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.removeMenuItemCalls, 	
+[
+  {
+    "0": "prevBookmark"
+  },
+  {
+    "0": "readLater"
+  }
+], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
 			assert.deepEqual(api.createMenuItemCalls, [{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
@@ -541,7 +551,12 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, [], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.removeMenuItemCalls, 	
+[
+  {
+    "0": "readLater"
+  }
+], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
 			assert.deepEqual(api.createMenuItemCalls,
 				[{
 						"0" : "manage",
