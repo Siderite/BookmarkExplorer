@@ -112,8 +112,6 @@
 		},
 		openSettings : function (url) {
 			var self = this;
-			/*var settingsUrl = self.api.getExtensionUrl('settings.html');
-			self.api.selectOrNew(settingsUrl);*/
 			self.api.openOptions();
 		},
 		openDeleted : function (url) {
@@ -168,9 +166,11 @@
 					} else {
 						self.api.removeMenuItem('nextBookmark');
 					}
-					self.api.removeMenuItem('readLater');
+					self.api.removeMenuItem('readLinkLater');
+					self.api.removeMenuItem('readPageLater');
 					if (settings.readLaterContext) {
-						self.api.createMenuItem('readLater', 'Read link later');
+						self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
+						self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
 						var n={};
 						(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
 							if (name) n[name]=true;
@@ -178,7 +178,8 @@
 						var names=Object.keys(n);
 						if (names.length>1) {
 							names.forEach(function(name) {
-								self.api.createMenuItem('readLater '+name,name,'readLater');
+								self.api.createMenuItem({id:'readLinkLater '+name, title:name,parentId:'readLinkLater',contexts:["link"]});
+								self.api.createMenuItem({id:'readPageLater '+name, title:name,parentId:'readPageLater',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
 							});
 						}
 					}
@@ -262,20 +263,23 @@
 		execute : function (command, info) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
-				if (command.startsWith('readLater')) {
+				if (command.startsWith('readLinkLater')||command.startsWith('readPageLater')) {
 					if (!info)
 						return;
-					var folderName=command.substr('readLater'.length).trim()||'Read Later';
+					var folderName=command.substr(13/*length of command*/).trim()||'Read Later';
 					if (info.linkUrl) {
 						self.readLater(info.linkUrl,folderName);
 						return;
 					}
-					if (info.pageUrl && confirm('No link selected. Do you want me to bookmark the whole page?')) {
-						self.addReadLaterBookmark({
-							url : tab.url,
-							title : tab.title
-						},folderName);
-					}
+					self.api.getSettings().then(function (settings) {
+						if (info.pageUrl && (!settings.confirmBookmarkPage||confirm('No link selected. Do you want me to bookmark the current page?'))) {
+							self.addReadLaterBookmark({
+								url : tab.url,
+								title : tab.title
+							},folderName);
+						}
+					});
+					return;
 				}
 				switch (command) {
 				case 'manage':

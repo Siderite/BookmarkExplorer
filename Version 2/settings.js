@@ -13,6 +13,7 @@
 		var chkPrevNextContext = $('#chkPrevNextContext', context);
 		var chkManageContext = $('#chkManageContext', context);
 		var chkReadLaterContext = $('#chkReadLaterContext', context);
+		var chkConfirmBookmarkPage = $('#chkConfirmBookmarkPage', context);
 		var liReadLaterFolderName = $('#liReadLaterFolderName', context);
 		var txtReadLaterPageTimeout = $('#txtReadLaterPageTimeout', context);
 		var chkStoreAllDeletedBookmarks = $('#chkStoreAllDeletedBookmarks', context);
@@ -36,6 +37,12 @@
 			.prop('checked', settings.readLaterContext)
 			.click(function () {
 				settings.readLaterContext = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+			chkConfirmBookmarkPage
+			.prop('checked', settings.confirmBookmarkPage)
+			.click(function () {
+				settings.confirmBookmarkPage = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 			var n={};

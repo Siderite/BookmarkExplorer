@@ -172,14 +172,25 @@
 			return promise;
 		},
 		settingsKey : 'settings',
+		expandSettings: function(settings) {
+			settings=settings||{};
+			var data = {
+				prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? false : !!settings.prevNextContext,
+				manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
+				readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
+				readLaterFolderName : settings.readLaterFolderName || 'Read Later',
+				readLaterPageTimeout: +(settings.readLaterPageTimeout) || 15000,
+				storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
+				daysAutoClearDeleted: +(settings.daysAutoClearDeleted) || 0,
+				confirmBookmarkPage: typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage
+			};
+			return data;
+		},
 		getSettings : function () {
 			var self = this;
 			return new Promise(function (resolve, reject) {
 				self.getData(self.settingsKey).then(function (data) {
-					if (!data) {
-						self.setSettings({}).then(resolve);
-						return;
-					};
+					data=self.expandSettings(data);
 					resolve(data);
 				});
 			});
@@ -187,19 +198,7 @@
 		setSettings : function (settings) {
 			var self = this;
 			return new Promise(function (resolve, reject) {
-				if (!settings) {
-					self.getSettings().then(resolve);
-					return;
-				}
-				var data = {
-					prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? false : !!settings.prevNextContext,
-					manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
-					readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
-					readLaterFolderName : settings.readLaterFolderName || 'Read Later',
-					readLaterPageTimeout: +(settings.readLaterPageTimeout) || 15000,
-					storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
-					daysAutoClearDeleted: +(settings.daysAutoClearDeleted) || 0,
-				};
+				var data=self.expandSettings(settings);
 				self.setData(self.settingsKey, data).then(function () {
 					resolve(data);
 				});
@@ -521,12 +520,20 @@
 			});
 		},
 		createMenuItem : function (id, title, parentId) {
+			var contexts=["page", "frame", "selection", "link", "editable", "image", "video", "audio"];
+			if (typeof(id)=='object') {
+				var options=id;
+				id=options.id;
+				title=options.title;
+				parentId=options.parentId;
+				contexts=options.contexts||contexts;
+			}
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					var itm = {
 						"id" : id,
 						"title" : title,
-						"contexts" : ["page", "frame", "selection", "link", "editable", "image", "video", "audio"]
+						"contexts" : contexts
 					};
 					if (parentId) itm.parentId=parentId;
 					self.chr.contextMenus.create(itm, function () {

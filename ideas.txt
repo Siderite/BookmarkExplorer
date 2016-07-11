@@ -13,3 +13,4 @@
 ?- create web page from selected items (drag and drop to reorder)
 ?- use sync instead of local storage (configurable)
 - icons for various sizes and DPIs
+*- menu for Read link later should appear on links only, another should say "Read this page later" in any other case

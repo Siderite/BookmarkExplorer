@@ -439,23 +439,41 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, [
-  {
-    "0": "prevBookmark"
-  },
-  {
-    "0": "nextBookmark"
-  },
-  {
-    "0": "readLater"
-  }
-], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.removeMenuItemCalls, [{
+						"0" : "prevBookmark"
+					}, {
+						"0" : "nextBookmark"
+					}, {
+						"0" : "readLinkLater"
+					}, {
+						"0" : "readPageLater"
+					}
+				], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
 			assert.deepEqual(api.createMenuItemCalls, [{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
 					}, {
-						"0" : "readLater",
-						"1" : "Read link later"
+						"0" : {
+							"contexts" : [
+								"link"
+							],
+							"id" : "readLinkLater",
+							"title" : "Read link later"
+						}
+					}, {
+						"0" : {
+							"contexts" : [
+								"page",
+								"frame",
+								"selection",
+								"editable",
+								"image",
+								"video",
+								"audio"
+							],
+							"id" : "readPageLater",
+							"title" : "Read page later"
+						}
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
@@ -493,24 +511,44 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, 	
-[
-  {
-    "0": "prevBookmark"
-  },
-  {
-    "0": "readLater"
-  }
-], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
-			assert.deepEqual(api.createMenuItemCalls, [{
+			assert.deepEqual(api.removeMenuItemCalls,
+				[{
+						"0" : "prevBookmark"
+					}, {
+						"0" : "readLinkLater"
+					}, {
+						"0" : "readPageLater"
+					}
+				], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.createMenuItemCalls,
+				[{
 						"0" : "manage",
 						"1" : "Manage bookmark folder"
 					}, {
 						"0" : "nextBookmark",
 						"1" : "Navigate to next bookmark (Ctrl-Shift-L)"
 					}, {
-						"0" : "readLater",
-						"1" : "Read link later"
+						"0" : {
+							"contexts" : [
+								"link"
+							],
+							"id" : "readLinkLater",
+							"title" : "Read link later"
+						}
+					}, {
+						"0" : {
+							"contexts" : [
+								"page",
+								"frame",
+								"selection",
+								"editable",
+								"image",
+								"video",
+								"audio"
+							],
+							"id" : "readPageLater",
+							"title" : "Read page later"
+						}
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
@@ -551,12 +589,13 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}
 				], "BookmarkExplorer refreshIconAndMenu sets the icon correctly");
 			assert.deepEqual(api.getTreeCalled, 1, "BookmarkExplorer refreshIconAndMenu gets the bookmark");
-			assert.deepEqual(api.removeMenuItemCalls, 	
-[
-  {
-    "0": "readLater"
-  }
-], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
+			assert.deepEqual(api.removeMenuItemCalls,
+				[{
+						"0" : "readLinkLater"
+					}, {
+						"0" : "readPageLater"
+					}
+				], "BookmarkExplorer refreshIconAndMenu removes the correct menu items");
 			assert.deepEqual(api.createMenuItemCalls,
 				[{
 						"0" : "manage",
@@ -568,8 +607,27 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 						"0" : "nextBookmark",
 						"1" : "Navigate to next bookmark (Ctrl-Shift-L)"
 					}, {
-						"0" : "readLater",
-						"1" : "Read link later"
+						"0" : {
+							"contexts" : [
+								"link"
+							],
+							"id" : "readLinkLater",
+							"title" : "Read link later"
+						}
+					}, {
+						"0" : {
+							"contexts" : [
+								"page",
+								"frame",
+								"selection",
+								"editable",
+								"image",
+								"video",
+								"audio"
+							],
+							"id" : "readPageLater",
+							"title" : "Read page later"
+						}
 					}
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 		}, a);
