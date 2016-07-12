@@ -7,7 +7,9 @@
 		this.eventRoot = eventRoot;
 		this.listener = listener;
 		if (eventRoot) {
-			eventRoot.addListener(listener);
+			var params = Array.from(arguments);
+			params.splice(0, 1);
+			eventRoot.addListener.apply(eventRoot, params);
 		}
 	}
 	EventHandler.prototype = {
@@ -43,16 +45,17 @@
 		return 3; //same host and parameters and hash
 	};
 
-	ApiWrapper.throttle = function(f,time) {
-		time=+(time)||500;
-		var timeout=null;
-		return function() {
-			var self=this;
-			var args=arguments;
-			if (timeout) clearTimeout(timeout);
-			timeout=setTimeout(function() {
-				f.apply(self,args);
-			},time);
+	ApiWrapper.throttle = function (f, time) {
+		time =  + (time) || 500;
+		var timeout = null;
+		return function () {
+			var self = this;
+			var args = arguments;
+			if (timeout)
+				clearTimeout(timeout);
+			timeout = setTimeout(function () {
+					f.apply(self, args);
+				}, time);
 		};
 	};
 
@@ -172,17 +175,18 @@
 			return promise;
 		},
 		settingsKey : 'settings',
-		expandSettings: function(settings) {
-			settings=settings||{};
+		expandSettings : function (settings) {
+			settings = settings || {};
 			var data = {
 				prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? false : !!settings.prevNextContext,
 				manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
 				readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
 				readLaterFolderName : settings.readLaterFolderName || 'Read Later',
-				readLaterPageTimeout: +(settings.readLaterPageTimeout) || 15000,
-				storeAllDeletedBookmarks: typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
-				daysAutoClearDeleted: +(settings.daysAutoClearDeleted) || 0,
-				confirmBookmarkPage: typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage
+				readLaterPageTimeout :  + (settings.readLaterPageTimeout) || 15000,
+				storeAllDeletedBookmarks : typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
+				daysAutoClearDeleted :  + (settings.daysAutoClearDeleted) || 0,
+				confirmBookmarkPage : typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage,
+				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext
 			};
 			return data;
 		},
@@ -190,7 +194,7 @@
 			var self = this;
 			return new Promise(function (resolve, reject) {
 				self.getData(self.settingsKey).then(function (data) {
-					data=self.expandSettings(data);
+					data = self.expandSettings(data);
 					resolve(data);
 				});
 			});
@@ -198,7 +202,7 @@
 		setSettings : function (settings) {
 			var self = this;
 			return new Promise(function (resolve, reject) {
-				var data=self.expandSettings(settings);
+				var data = self.expandSettings(settings);
 				self.setData(self.settingsKey, data).then(function () {
 					resolve(data);
 				});
@@ -423,28 +427,28 @@
 			return promise;
 		},
 		deletedBookmarksKey : 'lastDeletedBookmarks',
-		ensureCleanDeletedBookmarks : function(arr) {
+		ensureCleanDeletedBookmarks : function (arr) {
 			var self = this;
 			return new Promise(function (resolve, reject) {
-				if (!arr||!arr.bookmarks) {
+				if (!arr || !arr.bookmarks) {
 					resolve();
 					return;
 				}
-				self.getSettings().then(function(settings) {
+				self.getSettings().then(function (settings) {
 					if (!settings.daysAutoClearDeleted) {
 						resolve();
 						return;
 					}
-					var now=new Date();
-					var newbms=arr.bookmarks.filter(function(obj) {
-						var time=obj.time||new Date('2016-06-26').getTime();
-						return (now-time)<=86400000*settings.daysAutoClearDeleted;
-					});
-					if (newbms.length==arr.bookmarks.length) {
+					var now = new Date();
+					var newbms = arr.bookmarks.filter(function (obj) {
+							var time = obj.time || new Date('2016-06-26').getTime();
+							return (now - time) <= 86400000 * settings.daysAutoClearDeleted;
+						});
+					if (newbms.length == arr.bookmarks.length) {
 						resolve();
 						return;
 					}
-					arr.bookmarks=newbms;
+					arr.bookmarks = newbms;
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
 			});
@@ -462,7 +466,7 @@
 					if (!arr || !arr.bookmarks || !arr.bookmarks.length) {
 						resolve(null);
 					} else {
-						self.ensureCleanDeletedBookmarks(arr).then(function() {
+						self.ensureCleanDeletedBookmarks(arr).then(function () {
 							resolve(arr.bookmarks);
 						});
 					}
@@ -478,8 +482,8 @@
 							bookmarks : []
 						};
 					arr.bookmarks.push({
-						time:new Date().getTime(),
-						items:bookmarks
+						time : new Date().getTime(),
+						items : bookmarks
 					});
 					self.setData(self.deletedBookmarksKey, arr).then(resolve);
 				});
@@ -520,13 +524,13 @@
 			});
 		},
 		createMenuItem : function (id, title, parentId) {
-			var contexts=["page", "frame", "selection", "link", "editable", "image", "video", "audio"];
-			if (typeof(id)=='object') {
-				var options=id;
-				id=options.id;
-				title=options.title;
-				parentId=options.parentId;
-				contexts=options.contexts||contexts;
+			var contexts = ["page", "frame", "selection", "link", "editable", "image", "video", "audio"];
+			if (typeof(id) == 'object') {
+				var options = id;
+				id = options.id;
+				title = options.title;
+				parentId = options.parentId;
+				contexts = options.contexts || contexts;
 			}
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
@@ -535,7 +539,8 @@
 						"title" : title,
 						"contexts" : contexts
 					};
-					if (parentId) itm.parentId=parentId;
+					if (parentId)
+						itm.parentId = parentId;
 					self.chr.contextMenus.create(itm, function () {
 						self.log(self.getError());
 						resolve(itm);

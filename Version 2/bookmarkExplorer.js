@@ -9,6 +9,8 @@
 		this.init(noInitialRefresh);
 	}
 
+	BookmarkExplorer.preloadedUrls={};
+
 	BookmarkExplorer.prototype = {
 		init : function (noInitialRefresh) {
 			var self = this;
@@ -91,6 +93,7 @@
 					self.execute.apply(self, arguments);
 				});
 			}
+
 			if (!noInitialRefresh) {
 				refresh();
 			}
@@ -182,6 +185,9 @@
 								self.api.createMenuItem({id:'readPageLater '+name, title:name,parentId:'readPageLater',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
 							});
 						}
+					}
+					if (settings.preloadNext && data && data.next) {
+						self.preload(data.next.url);
 					}
 				});
 			});
@@ -403,10 +409,28 @@
 						return result;
 					}
 					self.api.getTree().then(function (tree) {
-						resolve(walk(tree));
+						var info=walk(tree);
+						resolve(info);
 					});
 				});
 			return promise;
+		},
+		preloadFrameId:'ifrPreload',
+		preload: function(url) {
+			var self=this;
+			var time=BookmarkExplorer.preloadedUrls[url];
+			var now=(new Date()).getTime();
+			BookmarkExplorer.preloadedUrls[url]=now;
+			if (time&&now-time<86400000) return;
+			var fr=document.getElementById(self.preloadFrameId);
+			if (!fr) {
+				fr=document.createElement('iframe');
+				fr.id=self.preloadFrameId;
+				fr.style.display='none';
+				fr.setAttribute('sandbox','allow-same-origin allow-scripts');
+				document.body.appendChild(fr);
+			}
+			fr.setAttribute('src',url);
 		}
 	};
 

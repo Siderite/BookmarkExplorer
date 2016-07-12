@@ -19,6 +19,7 @@
 		var chkStoreAllDeletedBookmarks = $('#chkStoreAllDeletedBookmarks', context);
 		var txtAutoClearDeleted = $('#txtAutoClearDeleted', context);
 		var btnAddFolderName = $('#btnAddFolderName', context);
+		var chkPreloadNext = $('#chkPreloadNext', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -103,6 +104,12 @@
 				var val= +($(this).val())||0;
 				if (val<0) val=0;
 				settings.daysAutoClearDeleted = val;
+				api.setSettings(settings);
+			});
+			chkPreloadNext
+			.prop('checked', settings.preloadNext)
+			.click(function () {
+				settings.preloadNext = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 		});
