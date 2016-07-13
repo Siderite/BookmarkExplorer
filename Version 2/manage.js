@@ -68,7 +68,12 @@
 				}
 			}
 
+			var last=0;
+
 			function refresh(data) {
+				var sdata=data?JSON.stringify(data):null;
+				if (sdata==last) return;
+				last=sdata;
 				$(context).trigger('refresh');
 				var checkData = {};
 				tree.find('input[type=checkbox]').each(function () {

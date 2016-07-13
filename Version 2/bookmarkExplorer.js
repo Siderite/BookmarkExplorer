@@ -173,7 +173,7 @@
 					self.api.removeMenuItem('readPageLater');
 					if (settings.readLaterContext) {
 						self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
-						self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
+						self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"/*, "frame", "selection", "editable", "image", "video", "audio"*/]});
 						var n={};
 						(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
 							if (name) n[name]=true;
