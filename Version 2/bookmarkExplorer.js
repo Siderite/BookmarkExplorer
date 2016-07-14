@@ -416,6 +416,7 @@
 			return promise;
 		},
 		preloadFrameId:'ifrPreload',
+		preloadLinkId:'lnkPreload',
 		preload: function(url) {
 			var self=this;
 			var time=BookmarkExplorer.preloadedUrls[url];
@@ -427,10 +428,18 @@
 				fr=document.createElement('iframe');
 				fr.id=self.preloadFrameId;
 				fr.style.display='none';
-				fr.setAttribute('sandbox','allow-same-origin allow-scripts');
+				fr.setAttribute('sandbox','allow-same-origin'); //allow-scripts
 				document.body.appendChild(fr);
 			}
 			fr.setAttribute('src',url);
+			var frl=document.getElementById(self.preloadLinkId);
+			if (!frl) {
+				frl=document.createElement('link');
+				frl.id=self.preloadLinkId;
+				frl.setAttribute('rel','prefetch');
+				document.body.appendChild(frl);
+			}
+			frl.setAttribute('href',url);
 		}
 	};
 
