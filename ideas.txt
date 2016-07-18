@@ -16,3 +16,7 @@
 *- menu for Read link later should appear on links only, another should say "Read this page later" in any other case
 - select a piece of a page and bookmark it somehow, perhaps personal notes as well
 - for version 3, separate the extension into separately testable modules
+- redesign the menu: two icons for toggle all/previous and structure the menu as: Delete, Restore and export/import page
+- create a better export/import page, with options for saving the bookmarks as html, url text list, Chrome bookmarks file, etc. as well as importing from several formats
+- read later all tabs in window
+- setting for recursive (in folder) navigation
