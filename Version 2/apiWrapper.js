@@ -226,6 +226,9 @@
 		getExtensionUrl : function (file) {
 			return this.chr.extension.getURL(file);
 		},
+		getOptionsUrl: function() {
+			return 'chrome://extensions/?options='+this.chr.runtime.id;
+		},
 		getTabById : function (tabId) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {

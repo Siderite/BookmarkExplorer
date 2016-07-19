@@ -11,21 +11,22 @@ QUnit.test("Manage script", function (assert) {
 	(function () {
 		var global = this;
 		global.testContext = {};
-		global.testContext.document = $('<section><div id="divHeader"><span></span><img/></div>' +
-				'<div id="divSubheader"></div>' +
-				'<div id="divCounts"><span></span></div>' +
-				'<div id="divTree"></div>' +
-				'<ul id="ulMenu">' +
-				'	<li class="ui-widget-header">Items</li>' +
-				'	<li data-command="toggleAll">Toggle all</li>' +
-				'	<li data-command="toggleBefore">Toggle all before current</li>' +
-				'	<li class="ui-widget-header">Actions</li>' +
-				'	<li data-command="delete">Delete selected</li>' +
-				'	<li data-command="restore">Restore deleted</li>' +
-				'	<li class="ui-widget-header">Import/Export</li>' +
-				'	<li data-command="copy">Copy URLs to clipboard</li>' +
-				'	<li data-command="paste">Import URLs from clipboard</li>' +
-				'</ul></section>');
+		global.testContext.document = $('<section>'+
+	'<div id="divHeader"><span id="spnTitle"></span><span id="spnButtons"><img id="imgToggleBefore" title="Toggle all before current" src="toggleBefore.png"/><img id="imgToggleAll" title="Toggle all before current"src="toggleAll.png"/><img id="imgMenu"  title="Menu" src="menu.png"/></span></div>'+
+	'<div id="divSubheader"></div>'+
+	'<div id="divFilter"><label for="txtFilter">Filter:</label><input id="txtFilter" /><img src="clearText.png" title="clear filter"/></div>'+
+	'<div id="divCounts"><span></span></div>'+
+	'<div id="divTree"></div>'+
+	'<ul id="ulMenu">'+
+	'   <li class="ui-widget-header">Actions</li>'+
+	'	<li data-command="delete">Delete selected</li>'+
+	'	<li class="ui-widget-header">Pages</li>'+
+	'	<li data-command="restore">Restore deleted bookmarks</li>'+
+	'	<li data-command="settings">Settings</li>'+
+	'	<li class="ui-widget-header">Import/Export</li>'+
+	'	<li data-command="copy">Copy URLs to clipboard</li>'+
+	'	<li data-command="paste">Import URLs</li>'+
+	'</ul></section>');
 		function contextReset() {
 			global.testContext.tree = [];
 			global.testContext.currentData = null;
@@ -106,8 +107,8 @@ QUnit.test("Manage script", function (assert) {
 
 			assert.ok(global.testContext.messageListener && typeof(global.testContext.messageListener) == 'function', "Initial load binds a listener to onMessage");
 
-			assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', true, "Initial load with no data hides ToggleAll button");
-			assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', true, "Initial load with no data hides ToggleBefore button");
+			assert.equal($('#imgToggleAll', tc).css('display') == 'none', true, "Initial load with no data hides ToggleAll button");
+			assert.equal($('#imgToggleBefore', tc).css('display') == 'none', true, "Initial load with no data hides ToggleBefore button");
 			assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Initial load with no data hides Remove button");
 			assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Initial load with no deleted bookmarks hides Undo button");
 			assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Initial load with no deleted bookmarks populates title");
@@ -150,8 +151,8 @@ QUnit.test("Manage script", function (assert) {
 			global.testContext.messageListener(data);
 
 			stringFunctions(function () {
-				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
-				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
+				assert.equal($('#imgToggleAll', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
+				assert.equal($('#imgToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
 				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
 				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Refresh with data, but no deleted bookmarks hides Undo button");
 				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
@@ -165,8 +166,8 @@ QUnit.test("Manage script", function (assert) {
 				global.testContext.messageListener(null);
 			}, function () {
 
-				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', true, "Refresh with no data hides ToggleAll button");
-				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', true, "Refresh with no data hides ToggleBefore button");
+				assert.equal($('#imgToggleAll', tc).css('display') == 'none', true, "Refresh with no data hides ToggleAll button");
+				assert.equal($('#imgToggleBefore', tc).css('display') == 'none', true, "Refresh with no data hides ToggleBefore button");
 				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with no data hides Remove button");
 				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', true, "Refresh with no deleted bookmarks hides Undo button");
 				assert.equal($('#divHeader', tc).text(), 'Bookmark for the URL not found', "Refresh with no deleted bookmarks populates title");
@@ -190,8 +191,8 @@ QUnit.test("Manage script", function (assert) {
   "lastDeletedBookmarks",
   "settings"
 ], "Refresh with data reads storage for 'lastDeletedBookmarks'");
-				assert.equal($('li[data-command=toggleAll]', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
-				assert.equal($('li[data-command=toggleBefore]', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
+				assert.equal($('#imgToggleAll', tc).css('display') == 'none', false, "Refresh with data shows ToggleAll button");
+				assert.equal($('#imgToggleBefore', tc).css('display') == 'none', false, "Refresh with data shows ToggleBefore button");
 				assert.equal($('li[data-command=delete]', tc).css('display') == 'none', true, "Refresh with data, but no selected items hides Remove button");
 				assert.equal($('li[data-command=restore]', tc).css('display') == 'none', false, "Refresh with data, and deleted bookmarks shows Undo button");
 				assert.equal($('#divHeader', tc).text(), 'title 1', "Refresh with data shows correct title");
@@ -252,7 +253,7 @@ QUnit.test("Manage script", function (assert) {
 				//assert.deepEqual(global.testContext.storageSet, [{"lastDeletedBookmarks":{"bookmarks":[[{"id":"test id 2","title":"title 2","url":"test url"}]]}}], "Clicking on Delete sets storage for 'lastDeletedBookmarks'");
 
 				contextReset();
-				$('li[data-command=toggleAll]', tc).click();
+				$('#imgToggleAll', tc).click();
 
 			}, function () {
 				var inputs = $('#divTree input', tc);
@@ -266,7 +267,7 @@ QUnit.test("Manage script", function (assert) {
 
 				inputs.eq(1).parent().addClass('selected');
 
-				$('li[data-command=toggleBefore]', tc).click();
+				$('#imgToggleBefore', tc).click();
 
 			}, function () {
 				var inputs = $('#divTree input', tc);

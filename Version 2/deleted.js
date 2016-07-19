@@ -10,11 +10,11 @@
 	$(function () {
 
 		var list = $('#divList', context);
-		var header = $('#divHeader span:first', context);
+		var header = $('#spnTitle', context);
+		var imgMenu = $('#imgMenu', context);
+		var imgToggleAll = $('#imgToggleAll', context);
 		var divStats = $('#divHeader .stats', context);
-		var menuImg = $('#divHeader img', context);
 		var menu = $('#ulMenu', context);
-		var liToggleAll = $('li[data-command=toggleAll]', menu);
 		var liRestore = $('li[data-command=restore]', menu);
 		var liClearAll = $('li[data-command=clearAll]', menu);
 		var divFilter = $('#divFilter', context);
@@ -38,6 +38,8 @@
 			}).on('filter', function () {
 				refreshRestore();
 			});
+
+			imgToggleAll.click(function() { toggleAll(list); });
 
 			function toggleAll(elem) {
 				var inputs = elem.find('input[type=checkbox]:nothidden');
@@ -101,9 +103,6 @@
 
 			function executeMenuCommand(command) {
 				switch (command) {
-				case 'toggleAll':
-					toggleAll(list);
-					break;
 				case 'restore':
 					if (restoreBookmarks()) {
 						refresh();
@@ -185,7 +184,7 @@
 			}
 
 			menu.contextMenu({
-				anchor : menuImg,
+				anchor : imgMenu,
 				executeCommand : executeMenuCommand
 			});
 
@@ -202,16 +201,16 @@
 				};
 				api.getDeletedBookmarks().then(function (bookmarks) {
 					if (!bookmarks || !bookmarks.length) {
-						menuImg.hide();
-						liToggleAll.hide();
+						imgMenu.hide();
+						imgToggleAll.hide();
 						liRestore.hide();
 						liClearAll.hide();
 						header.text('No deleted bookmarks found');
 						divFilter.hide();
 						return;
 					}
-					menuImg.show();
-					liToggleAll.show();
+					imgMenu.show();
+					imgToggleAll.show();
 					liRestore.hide();
 					liClearAll.show();
 					divFilter.show();

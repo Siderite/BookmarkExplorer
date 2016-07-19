@@ -10,18 +10,17 @@
 	<link rel="stylesheet" type="text/css" href="manage.css" media="all">
   </head>
   <body>
-	<div id="divHeader"><span></span><img src="menu.png"/></div>
+	<div id="divHeader"><span id="spnTitle"></span><span id="spnButtons"><img id="imgToggleBefore" title="Toggle all before current" src="toggleBefore.png"/><img id="imgToggleAll" title="Toggle all before current"src="toggleAll.png"/><img id="imgMenu"  title="Menu" src="menu.png"/></span></div>
 	<div id="divSubheader"></div>
 	<div id="divFilter"><label for="txtFilter">Filter:</label><input id="txtFilter" /><img src="clearText.png" title="clear filter"/></div>
 	<div id="divCounts"><span></span></div>
 	<div id="divTree"></div>
 	<ul id="ulMenu">
-		<li class="ui-widget-header">Items</li>
-		<li data-command="toggleAll">Toggle all</li>
-		<li data-command="toggleBefore">Toggle all before current</li>
 		<li class="ui-widget-header">Actions</li>
 		<li data-command="delete">Delete selected</li>
+		<li class="ui-widget-header">Pages</li>
 		<li data-command="restore">Restore deleted bookmarks</li>
+		<li data-command="settings">Settings</li>
 		<li class="ui-widget-header">Import/Export</li>
 		<li data-command="copy">Copy URLs to clipboard</li>
 		<li data-command="paste">Import URLs</li>

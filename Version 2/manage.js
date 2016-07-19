@@ -15,14 +15,14 @@
 
 			var app = bgPage.app;
 
-			var header = $('#divHeader span', context);
-			var menuImg = $('#divHeader img', context);
+			var header = $('#spnTitle', context);
+			var imgMenu = $('#imgMenu', context);
+			var imgToggleAll = $('#imgToggleAll', context);
+			var imgToggleBefore = $('#imgToggleBefore', context);
 			var subheader = $('#divSubheader', context);
 			var counts = $('#divCounts', context);
 			var tree = $('#divTree', context);
 			var menu = $('#ulMenu', context);
-			var liToggleAll = $('li[data-command=toggleAll]', menu);
-			var liToggleBefore = $('li[data-command=toggleBefore]', menu);
 			var liRemoveBookmarks = $('li[data-command=delete]', menu);
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
@@ -159,8 +159,8 @@
 
 			function refreshMenuOptions() {
 				var hasData = !!(currentData && currentData.folder);
-				liToggleAll.toggle(hasData);
-				liToggleBefore.toggle(hasData);
+				imgToggleAll.toggle(hasData);
+				imgToggleBefore.toggle(hasData);
 				var ul = tree.find('>ul');
 				var checkedInputs = ul.find('input:nothidden:checked');
 				liRemoveBookmarks.toggle(!!checkedInputs.length);
@@ -252,7 +252,7 @@
 			});
 
 			menu.contextMenu({
-				anchor : menuImg,
+				anchor : imgMenu,
 				onOpen : refreshMenuOptions,
 				executeCommand : executeMenuCommand
 			});
@@ -265,35 +265,46 @@
 				case 'paste':
 					pasteURLsFromClipboard();
 					break;
-				case 'toggleAll':
-					toggleAll();
-					break;
-				case 'toggleBefore':
-					toggleBefore();
-					break;
 				case 'delete':
 					removeBookmarks();
 					break;
 				case 'restore':
 					app.openDeleted();
 					break;
+				case 'settings':
+					app.openSettings();
+					break;
 				}
 			}
 
+			imgToggleAll.click(toggleAll);
+			imgToggleBefore.click(toggleBefore);
+
 			function toggleAll() {
 				var ul = tree.find('>ul');
-				var val = ul.find('>li>div:nothidden>input:checked').length < ul.find('>li>div:nothidden>input:not(:checked)').length;
+				var val = 0;
+				ul.find('>li>div:nothidden>input').each(function() {
+					val+=($(this).is(':checked')?1:-1);
+				});
+				val=val<0;
 				ul.find('>li>div:nothidden>input').prop('checked', val);
 				refreshMenuOptions();
 			}
 
 			function toggleBefore() {
 				var ul = tree.find('>ul');
-				var index = ul.find('>li:has(div.selected:nothidden)').index();
-				if (index < 0)
-					return;
-				var val = ul.find('>li>div:nothidden>input:lt(' + index + '):checked').length < ul.find('>li>div:nothidden>input:lt(' + index + '):not(:checked)').length;
-				ul.find('>li>div:nothidden>input:lt(' + index + ')').prop('checked', val);
+				var val = 0;
+				var chks=$();
+				ul.find('>li>div:nothidden').each(function(idx) {
+					var chk=$('>input',this);
+					if ($(this).is('.selected')) {
+						return false;
+					}
+					val+=(chk.is(':checked')?1:-1);
+					chks=chks.add(chk);
+				});
+				val=val<0;
+				chks.prop('checked', val);
 				refreshMenuOptions();
 			}
 

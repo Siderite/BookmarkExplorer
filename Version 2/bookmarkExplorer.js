@@ -134,12 +134,12 @@
 		refreshManage : function (currentTab) {
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
-			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html')];
+			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html'), self.api.getExtensionUrl('settings.html'), self.api.getOptionsUrl()];
 			self.api.getTabsByUrl(manageUrl).then(function (tabs) {
 				var tab = tabs[0];
 				if (!tab)
 					return;
-				if (ownUrls.includes(currentTab.url)) {
+				if (ownUrls.includes(currentTab.url)||currentTab.url.startsWith('chrome:')) {
 					self.api.sendMessage(tab.id, "current");
 					return;
 				}

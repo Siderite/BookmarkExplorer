@@ -19,10 +19,12 @@ html,body {
     font-size: 1.5rem;
     font-weight: bold;
 }
-#divHeader img {
+#spnButtons {
 	vertical-align:middle;
-	margin-right:10px;
 	float:right;
+}
+#spnButtons img {
+	margin-right:10px;
 	cursor:pointer;
 }
 #divSubheader {

@@ -361,6 +361,9 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 			api.getExtensionUrlFile.push(file);
 			return "ext:" + file;
 		},
+		getOptionsUrl : function() {
+			return "ext:options";
+		},
 		getTabsByUrl : function (url) {
 			api.getTabsByUrlUrl.push(url);
 			return new Promise(function (resolve, reject) {
@@ -372,7 +375,7 @@ QUnit.test("BookmarkExplorer refreshManage", function (assert) {
 	app.refreshManage(currentTab);
 	var a = assert.async()
 		stringFunctions(function () {
-			assert.deepEqual(api.getExtensionUrlFile, ["manage.html", "deleted.html"], "BookmarkExplorer refreshManage gets the correct URL for manage.html and deleted.html");
+			assert.deepEqual(api.getExtensionUrlFile, ["manage.html", "deleted.html", "settings.html"], "BookmarkExplorer refreshManage gets the correct URLs for manage, settings and deleted.html");
 			assert.equal(api.getTabsByUrlUrl, "ext:manage.html", "BookmarkExplorer refreshManage searches the tab for manage.html");
 		}, a);
 });
@@ -463,13 +466,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}, {
 						"0" : {
 							"contexts" : [
-								"page",
-								"frame",
-								"selection",
-								"editable",
-								"image",
-								"video",
-								"audio"
+								"page"
 							],
 							"id" : "readPageLater",
 							"title" : "Read page later"
@@ -538,13 +535,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}, {
 						"0" : {
 							"contexts" : [
-								"page",
-								"frame",
-								"selection",
-								"editable",
-								"image",
-								"video",
-								"audio"
+								"page"
 							],
 							"id" : "readPageLater",
 							"title" : "Read page later"
@@ -617,13 +608,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 					}, {
 						"0" : {
 							"contexts" : [
-								"page",
-								"frame",
-								"selection",
-								"editable",
-								"image",
-								"video",
-								"audio"
+								"page"
 							],
 							"id" : "readPageLater",
 							"title" : "Read page later"
