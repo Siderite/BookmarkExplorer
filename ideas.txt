@@ -21,3 +21,6 @@
 - read later all tabs in window
 #- setting for recursive (in folder) navigation
 - option to show the manage list while browsing
+- encrypted tabs
+- tab managing interface
+- what about tabs that people want to persist? Keep them as reference?
