@@ -185,6 +185,7 @@
 				readLaterPageTimeout :  + (settings.readLaterPageTimeout) || 15000,
 				storeAllDeletedBookmarks : typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
 				daysAutoClearDeleted :  + (settings.daysAutoClearDeleted) || 0,
+				enableBookmarkPage : typeof(settings.enableBookmarkPage) == 'undefined' ? false : !!settings.enableBookmarkPage,
 				confirmBookmarkPage : typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage,
 				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext
 			};

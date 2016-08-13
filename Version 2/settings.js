@@ -13,6 +13,7 @@
 		var chkPrevNextContext = $('#chkPrevNextContext', context);
 		var chkManageContext = $('#chkManageContext', context);
 		var chkReadLaterContext = $('#chkReadLaterContext', context);
+		var chkEnableBookmarkPage = $('#chkEnableBookmarkPage', context);
 		var chkConfirmBookmarkPage = $('#chkConfirmBookmarkPage', context);
 		var liReadLaterFolderName = $('#liReadLaterFolderName', context);
 		var txtReadLaterPageTimeout = $('#txtReadLaterPageTimeout', context);
@@ -40,7 +41,15 @@
 				settings.readLaterContext = $(this).prop('checked');
 				api.setSettings(settings);
 			});
+			chkEnableBookmarkPage
+			.prop('checked', settings.enableBookmarkPage)
+			.click(function () {
+				settings.enableBookmarkPage = $(this).prop('checked');
+				chkConfirmBookmarkPage.prop('disabled',!settings.enableBookmarkPage);
+				api.setSettings(settings);
+			});
 			chkConfirmBookmarkPage
+			.prop('disabled', !settings.enableBookmarkPage)
 			.prop('checked', settings.confirmBookmarkPage)
 			.click(function () {
 				settings.confirmBookmarkPage = $(this).prop('checked');
