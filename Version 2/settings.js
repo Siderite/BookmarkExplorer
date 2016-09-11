@@ -21,6 +21,7 @@
 		var txtAutoClearDeleted = $('#txtAutoClearDeleted', context);
 		var btnAddFolderName = $('#btnAddFolderName', context);
 		var chkPreloadNext = $('#chkPreloadNext', context);
+		var chkShowCurrentIndex = $('#chkShowCurrentIndex', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -53,6 +54,12 @@
 			.prop('checked', settings.confirmBookmarkPage)
 			.click(function () {
 				settings.confirmBookmarkPage = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+			chkShowCurrentIndex
+			.prop('checked', settings.showCurrentIndex)
+			.click(function () {
+				settings.showCurrentIndex = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 			var n={};

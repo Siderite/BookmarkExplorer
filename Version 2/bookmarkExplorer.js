@@ -188,6 +188,13 @@
 							});
 						}
 					}
+					if (settings.showCurrentIndex && data) {
+						self.api.setBadge(currentTab.id,data.index+1);
+						self.api.setTitle(currentTab.id,data.path+' : '+(data.index+1)+'/'+data.length);
+					} else {
+						self.api.setBadge(currentTab.id,'');
+						self.api.setTitle('Siderite\'s Bookmark Explorer');
+					}
 					if (settings.preloadNext && data && data.next) {
 						self.preload(data.next.url);
 					}
@@ -403,6 +410,7 @@
 									current : itm,
 									next : next,
 									index : idx,
+									length : arr.length,
 									path : path,
 									notifications : []
 								}, itm);

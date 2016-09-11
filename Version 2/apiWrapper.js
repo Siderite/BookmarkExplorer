@@ -187,7 +187,8 @@
 				daysAutoClearDeleted :  + (settings.daysAutoClearDeleted) || 0,
 				enableBookmarkPage : typeof(settings.enableBookmarkPage) == 'undefined' ? false : !!settings.enableBookmarkPage,
 				confirmBookmarkPage : typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage,
-				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext
+				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext,
+				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex
 			};
 			return data;
 		},
@@ -221,6 +222,34 @@
 						self.log(self.getError());
 						return resolve.apply(this, arguments)
 					});
+				});
+			return promise;
+		},
+		setBadge : function (tabId, text) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					var id=+(tabId);
+					if (id) {
+						self.chr.browserAction.setBadgeText({
+							text : (text||'')+'',
+							tabId : id
+						});
+					}
+					return resolve.apply(this);
+				});
+			return promise;
+		},
+		setTitle : function (tabId, text) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					var id=+(tabId);
+					if (id) {
+						self.chr.browserAction.setTitle({
+							title : (text||'')+'',
+							tabId : id
+						});
+					}
+					return resolve.apply(this);
 				});
 			return promise;
 		},

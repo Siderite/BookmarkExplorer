@@ -29,3 +29,6 @@
 #- tab managing interface
 - what about tabs that people want to persist? Keep them as reference?
 *- have Read Page Later functionality disabled by default. One can just bookmark it with Ctrl-D.
+- bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
+- bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow?
+*- show the number of items in Read Later folder(s) or active folder for the current link
