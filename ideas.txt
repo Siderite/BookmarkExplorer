@@ -30,5 +30,7 @@
 - what about tabs that people want to persist? Keep them as reference?
 *- have Read Page Later functionality disabled by default. One can just bookmark it with Ctrl-D.
 - bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
-- bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow?
+- bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow? Or is it linked to pages with no favico?
 *- show the number of items in Read Later folder(s) or active folder for the current link
+- check the extension looks good on all browser themes (use relative colors)
+- warn about duplicates in the folder in Manage and provide a way to remove duplicates

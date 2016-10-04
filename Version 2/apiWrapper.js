@@ -225,13 +225,18 @@
 				});
 			return promise;
 		},
-		setBadge : function (tabId, text) {
+		setBadge : function (tabId, text, color) {
 			var self = this;
+			color=color||'black';
 			var promise = new Promise(function (resolve, reject) {
 					var id=+(tabId);
 					if (id) {
 						self.chr.browserAction.setBadgeText({
 							text : (text||'')+'',
+							tabId : id
+						});
+						self.chr.browserAction.setBadgeBackgroundColor({
+							color : color,
 							tabId : id
 						});
 					}
