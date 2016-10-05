@@ -108,6 +108,7 @@ QUnit.test("BookmarkExplorer openManage", function (assert) {
 					}
 				],
 				"index" : 0,
+				"length" : 1,
 				"next" : null,
 				"notifications" : [],
 				"path" : undefined,
@@ -172,6 +173,7 @@ QUnit.test("BookmarkExplorer openManage", function (assert) {
 					"title" : "title 1"
 				},
 				"index" : 1,
+				"length" : 3,
 				"next" : {
 					"url" : "not test url"
 				},
@@ -217,6 +219,7 @@ QUnit.test("BookmarkExplorer getInfo", function (assert) {
 					}
 				],
 				"index" : 0,
+				"length" : 1,
 				"next" : null,
 				"notifications" : [],
 				"path" : undefined,
@@ -268,6 +271,7 @@ QUnit.test("BookmarkExplorer getInfo", function (assert) {
 						"title" : "title 1"
 					},
 					"index" : 1,
+					"length" : 3,
 					"next" : {
 						"url" : "not test url"
 					},
@@ -463,7 +467,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readLinkLater",
 							"title" : "Read link later"
 						}
-					}, {
+					}/*, {
 						"0" : {
 							"contexts" : [
 								"page"
@@ -471,7 +475,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readPageLater",
 							"title" : "Read page later"
 						}
-					}
+					}*/
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
 			tree = [{
@@ -532,7 +536,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readLinkLater",
 							"title" : "Read link later"
 						}
-					}, {
+					}/*, {
 						"0" : {
 							"contexts" : [
 								"page"
@@ -540,7 +544,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readPageLater",
 							"title" : "Read page later"
 						}
-					}
+					}*/
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 
 			tree = [{
@@ -605,7 +609,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readLinkLater",
 							"title" : "Read link later"
 						}
-					}, {
+					}/*, {
 						"0" : {
 							"contexts" : [
 								"page"
@@ -613,7 +617,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 							"id" : "readPageLater",
 							"title" : "Read page later"
 						}
-					}
+					}*/
 				], "BookmarkExplorer refreshIconAndMenu creates the correct menu items");
 		}, a);
 });

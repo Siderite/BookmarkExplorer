@@ -34,3 +34,5 @@
 *- show the number of items in Read Later folder(s) or active folder for the current link
 - check the extension looks good on all browser themes (use relative colors)
 - warn about duplicates in the folder in Manage and provide a way to remove duplicates
+*- bug: URLs ending with ? are not considered URLs resulting in an error in background page
+*- bug: in some unclear situations (multiple screens? some offending third party) chrome.tabs.query with currentWindow or lastFocusedWindow returns nothing, while without may return multiple results.

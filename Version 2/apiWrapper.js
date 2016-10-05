@@ -21,7 +21,7 @@
 		}
 	};
 
-	var regUrl = /^([^\?]*?)[\/]?(\?[^#]+)?(#.*)?$/;
+	var regUrl = /^\s*([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
 
 	function ApiWrapper(chr) {
 		if (!chr)
@@ -89,6 +89,11 @@
 					);
 				});
 			}
+			if (self.chr && self.chr.tabs && self.chr.tabs.onActivated) {
+				self.onActivatedTab(function (data) {
+					if (data.tabId) self.lastActivatedTabId=data.tabId;
+				});
+			}
 		},
 		getCurrentTab : function () {
 			var self = this;
@@ -98,7 +103,25 @@
 						'lastFocusedWindow' : true
 					}, function (tabs) {
 						var tab = tabs[0];
-						tab ? resolve(tab) : self.log('No active tab found');
+						if (tab) {
+							resolve(tab);
+						} else {
+							if (self.lastActivatedTabId) {
+								self.log('No active tab in lastActivatedWindow found, trying last activated tab id');
+								self.chr.tabs.query({
+									'active' : true
+								}, function (tabs) {
+									tab = tabs.filter(function(t) { return t.id==self.lastActivatedTabId; })[0];
+									if (tab) {
+										resolve(tab);
+									} else {
+										self.log('No active tab found with the lastActivatedTabId found');
+									}
+								});
+							} else {
+								self.log('No active tab in lastActivatedWindow found and last activated tab id is not set');
+							}
+						}
 					});
 				});
 			return promise;

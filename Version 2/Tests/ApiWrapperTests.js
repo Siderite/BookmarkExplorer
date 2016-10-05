@@ -1413,7 +1413,7 @@ QUnit.test("ApiWrapper dispose", function (assert) {
 	handlers.push(api.onImportEndedBookmark(listener));
 	handlers.push(api.onMessage(listener));
 	handlers.push(api.onCommand(listener));
-	assert.equal(chrome.listeners, handlers.length + 3, "ApiWrapper on methods registered the expected number of listeners"); // two from init, and two handlers for onCommand
+	assert.equal(chrome.listeners, handlers.length + 4, "ApiWrapper on methods registered the expected number of listeners"); // two from init, and two handlers for onCommand
 	api.dispose();
 	assert.equal(chrome.listeners, 0, "ApiWrapper dispose removed all listeners");
 	var count = 0;
