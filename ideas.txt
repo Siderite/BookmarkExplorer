@@ -36,3 +36,7 @@
 - warn about duplicates in the folder in Manage and provide a way to remove duplicates
 *- bug: URLs ending with ? are not considered URLs resulting in an error in background page
 *- bug: in some unclear situations (multiple screens? some offending third party) chrome.tabs.query with currentWindow or lastFocusedWindow returns nothing, while without may return multiple results.
+- synchronize bookmarks for Read Later across devices
+#- bug: duplicate bookmarks following each other block the advance of the reading
+*- idea: select all duplicates in the Read Later folder
+*- idea: lock the Manager on a specific folder (Autoselect function that one can disable?)

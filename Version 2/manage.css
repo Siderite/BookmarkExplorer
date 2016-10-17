@@ -27,6 +27,11 @@ html,body {
 	margin-right:10px;
 	cursor:pointer;
 }
+#spnHoldFolder {
+    font-size: 1rem;
+    font-weight: normal;
+	margin-left:5rem;
+}
 #divSubheader {
     font-size: 1.1rem;
 }

@@ -19,6 +19,7 @@
 			var imgMenu = $('#imgMenu', context);
 			var imgToggleAll = $('#imgToggleAll', context);
 			var imgToggleBefore = $('#imgToggleBefore', context);
+			var imgSelectDuplicates = $('#imgSelectDuplicates', context);
 			var subheader = $('#divSubheader', context);
 			var counts = $('#divCounts', context);
 			var tree = $('#divTree', context);
@@ -27,6 +28,8 @@
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
 			var divFilter = $('#divFilter', context);
+			var spnHoldFolder=$('#spnHoldFolder', context);
+			var chkHoldFolder=$('#chkHoldFolder', context);
 
 			divFilter.find('img').click(function () {
 				divFilter.find('input').val('').trigger('change');
@@ -55,8 +58,16 @@
 			api.onMessage(function (data) {
 				if (data == 'current') {
 					refreshFromCurrent();
-				} else {
+					return;
+				} 
+				if (!chkHoldFolder.is(':checked')) {
 					refresh(data);
+					return;
+				}
+				if (currentData&&currentData.folder&&data&&data.folder&&currentData.folder.id==data.folder.id) {
+					refresh(data);
+				} else {
+					refreshFromCurrent();
 				}
 			});
 
@@ -161,6 +172,8 @@
 				var hasData = !!(currentData && currentData.folder);
 				imgToggleAll.toggle(hasData);
 				imgToggleBefore.toggle(hasData);
+				imgSelectDuplicates.toggle(hasData);
+				spnHoldFolder.toggle(hasData);
 				var ul = tree.find('>ul');
 				var checkedInputs = ul.find('input:nothidden:checked');
 				liRemoveBookmarks.toggle(!!checkedInputs.length);
@@ -279,6 +292,7 @@
 
 			imgToggleAll.click(toggleAll);
 			imgToggleBefore.click(toggleBefore);
+			imgSelectDuplicates.click(selectDuplicates);
 
 			function toggleAll() {
 				var ul = tree.find('>ul');
@@ -305,6 +319,26 @@
 				});
 				val=val<0;
 				chks.prop('checked', val);
+				refreshMenuOptions();
+			}
+
+			function selectDuplicates() {
+				var ul = tree.find('>ul');
+				var urls=[];
+				ul.find('>li>div:nothidden').each(function() {
+					var a=$('a',this);
+					var chk=$('input',this);
+					var url=a.attr('href');
+					var checked=false;
+					urls.forEach(function(u) {
+						if (ApiWrapper.sameUrls(u,url) >= 2) {
+							checked=true;
+							return false;
+						}
+					});
+					chk.prop('checked', checked);
+					urls.push(url);
+				});
 				refreshMenuOptions();
 			}
 
