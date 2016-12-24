@@ -75,7 +75,9 @@
 				if (!currentData || !currentData.current) {
 					refresh();
 				} else {
-					app.getInfo(currentData.current.url).then(refresh);
+					app.getInfo(currentData.current.url).then(function(data) {
+						app.handleDuplicates(data,null).then(refresh);
+					});
 				}
 			}
 

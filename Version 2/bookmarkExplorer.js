@@ -110,9 +110,11 @@
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.getInfo(url).then(function (data) {
-				self.handleDuplicates(data,tab).then(function(data) {
+				self.api.getCurrentTab().then(function (currentTab) {
 					self.api.selectOrNew(manageUrl).then(function (tab) {
-						self.api.sendMessage(tab.id, data);
+						self.handleDuplicates(data,currentTab).then(function(data) {
+							self.api.sendMessage(tab.id, data);
+						});
 					});
 				});
 			});
@@ -456,6 +458,14 @@
 		handleDuplicates: function(arr,tab) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
+
+				if (!tab) {
+					self.api.getCurrentTab().then(function (currentTab) {
+						self.handleDuplicates(arr,currentTab).then(resolve);
+					});
+					return;
+				}
+
 
 				function max(str, size) {
 					if (!str)
