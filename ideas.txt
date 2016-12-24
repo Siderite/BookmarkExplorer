@@ -40,3 +40,12 @@
 #- bug: duplicate bookmarks following each other block the advance of the reading
 *- idea: select all duplicates in the Read Later folder
 *- idea: lock the Manager on a specific folder (Autoselect function that one can disable?)
+- a read and delete bookmark sort of navigation
+- clear marketing URLs
+- skip feature: move bookmark at the end of the folder and advance to the next item
+- Feature request: URLs like these http://eac-codecollab2.eac.ad.ea.com/ui#review:id=106941 appear as duplicates. Let the user configure what is considered duplicate.
+*- FR: when finding duplicates, use the last bookmarked page to find the best next link
+*- FR: settings to turn off various notifications
+	*- duplicates
+	*- go to next bookmarked page prompt
+*- Advanced settings section, coming with warning

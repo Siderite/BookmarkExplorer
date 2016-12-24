@@ -211,7 +211,9 @@
 				enableBookmarkPage : typeof(settings.enableBookmarkPage) == 'undefined' ? false : !!settings.enableBookmarkPage,
 				confirmBookmarkPage : typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage,
 				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext,
-				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex
+				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex,
+				showDuplicateNotifications : typeof(settings.showDuplicateNotifications) == 'undefined' ? true : !!settings.showDuplicateNotifications,
+				alwaysGoToNextBookmark : typeof(settings.alwaysGoToNextBookmark) == 'undefined' ? false : !!settings.alwaysGoToNextBookmark
 			};
 			return data;
 		},

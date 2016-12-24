@@ -20,10 +20,12 @@
 					refresh();
 					if (changeInfo && changeInfo.status == 'complete') {
 						self.getInfo(tab.url).then(function (data) {
-							if (data && data.current && tab.url == data.current.url) {
-								var notify = self.api.notify.bind(self.api);
-								data.notifications.forEach(notify);
-							}
+							self.handleDuplicates(data,tab).then(function(data) {
+								if (data && data.current && tab.url == data.current.url) {
+									var notify = self.api.notify.bind(self.api);
+									data.notifications.forEach(notify);
+								}
+							});
 						});
 					}
 				});
@@ -109,7 +111,9 @@
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.getInfo(url).then(function (data) {
 				self.api.selectOrNew(manageUrl).then(function (tab) {
-					self.api.sendMessage(tab.id, data);
+					self.handleDuplicates(data,tab).then(function(data) {
+						self.api.sendMessage(tab.id, data);
+					});
 				});
 			});
 		},
@@ -144,7 +148,9 @@
 					return;
 				}
 				self.getInfo(currentTab.url).then(function (data) {
-					self.api.sendMessage(tab.id, data);
+					self.handleDuplicates(data,currentTab).then(function(data) {
+						self.api.sendMessage(tab.id, data);
+					});
 				});
 			});
 		},
@@ -153,51 +159,53 @@
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.api.getSettings().then(function (settings) {
 				self.getInfo(currentTab.url).then(function (data) {
-					if (settings.manageContext) {
-						self.api.createMenuItem('manage', 'Manage bookmark folder');
-					} else {
-						self.api.removeMenuItem('manage');
-					}
-					self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
-					if (data && data.prev && settings.prevNextContext) {
-						self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-K)');
-					} else {
-						self.api.removeMenuItem('prevBookmark');
-					}
-					if (data && data.next && settings.prevNextContext) {
-						self.api.createMenuItem('nextBookmark', 'Navigate to next bookmark (Ctrl-Shift-L)');
-					} else {
-						self.api.removeMenuItem('nextBookmark');
-					}
-					self.api.removeMenuItem('readLinkLater');
-					self.api.removeMenuItem('readPageLater');
-					if (settings.readLaterContext) {
-						self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
-						if (settings.enableBookmarkPage) {
-							self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"/*, "frame", "selection", "editable", "image", "video", "audio"*/]});
+					self.handleDuplicates(data,currentTab).then(function(data) {
+						if (settings.manageContext) {
+							self.api.createMenuItem('manage', 'Manage bookmark folder');
+						} else {
+							self.api.removeMenuItem('manage');
 						}
-						var n={};
-						(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
-							if (name) n[name]=true;
-						});
-						var names=Object.keys(n);
-						if (names.length>1) {
-							names.forEach(function(name) {
-								self.api.createMenuItem({id:'readLinkLater '+name, title:name,parentId:'readLinkLater',contexts:["link"]});
-								self.api.createMenuItem({id:'readPageLater '+name, title:name,parentId:'readPageLater',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
+						self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
+						if (data && data.prev && settings.prevNextContext) {
+							self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-K)');
+						} else {
+							self.api.removeMenuItem('prevBookmark');
+						}
+						if (data && data.next && settings.prevNextContext) {
+							self.api.createMenuItem('nextBookmark', 'Navigate to next bookmark (Ctrl-Shift-L)');
+						} else {
+							self.api.removeMenuItem('nextBookmark');
+						}
+						self.api.removeMenuItem('readLinkLater');
+						self.api.removeMenuItem('readPageLater');
+						if (settings.readLaterContext) {
+							self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
+							if (settings.enableBookmarkPage) {
+								self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"/*, "frame", "selection", "editable", "image", "video", "audio"*/]});
+							}
+							var n={};
+							(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
+								if (name) n[name]=true;
 							});
+							var names=Object.keys(n);
+							if (names.length>1) {
+								names.forEach(function(name) {
+									self.api.createMenuItem({id:'readLinkLater '+name, title:name,parentId:'readLinkLater',contexts:["link"]});
+									self.api.createMenuItem({id:'readPageLater '+name, title:name,parentId:'readPageLater',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
+								});
+							}
 						}
-					}
-					if (settings.showCurrentIndex && data) {
-						self.api.setBadge(currentTab.id,data.index+1,'#909090');
-						self.api.setTitle(currentTab.id,data.path+' : '+(data.index+1)+'/'+data.length);
-					} else {
-						self.api.setBadge(currentTab.id,'');
-						self.api.setTitle(currentTab.id,'Siderite\'s Bookmark Explorer');
-					}
-					if (settings.preloadNext && data && data.next) {
-						self.preload(data.next.url);
-					}
+						if (settings.showCurrentIndex && data) {
+							self.api.setBadge(currentTab.id,data.index+1,'#909090');
+							self.api.setTitle(currentTab.id,data.path+' : '+(data.index+1)+'/'+data.length);
+						} else {
+							self.api.setBadge(currentTab.id,'');
+							self.api.setTitle(currentTab.id,'Siderite\'s Bookmark Explorer');
+						}
+						if (settings.preloadNext && data && data.next) {
+							self.preload(data.next.url);
+						}
+					});
 				});
 			});
 		},
@@ -281,7 +289,7 @@
 				if (command.startsWith('readLinkLater')||command.startsWith('readPageLater')) {
 					if (!info)
 						return;
-					var folderName=command.substr(13/*length of command*/).trim()||'Read Later';
+					var folderName=command.substr(13/*length of readLinkLater and readPageLater*/).trim()||'Read Later';
 					if (info.linkUrl) {
 						self.readLater(info.linkUrl,folderName);
 						return;
@@ -305,50 +313,56 @@
 					return;
 				}
 				self.getInfo(tab.url).then(function (data) {
-					switch (command) {
-					case 'prevBookmark':
-						if (!data || !data.prev) {
-							self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
-								self.getInfo(url).then(function (data) {
-									if (!data) {
-										self.api.notify('Page not bookmarked');
-										return;
-									}
-									if (!data.prev) {
-										self.api.notify('Reached the start of the bookmark folder');
-										return;
-									}
-									if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
-										self.api.setUrl(tab.id, data.prev.url);
-									}
+					self.handleDuplicates(data,tab).then(function(data) {
+						switch (command) {
+						case 'prevBookmark':
+							if (!data || !data.prev) {
+								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
+									self.getInfo(url).then(function (data) {
+										data=self.handleDuplicates(data,tab);
+										if (!data) {
+											self.api.notify('Page not bookmarked');
+											return;
+										}
+										if (!data.prev) {
+											self.api.notify('Reached the start of the bookmark folder');
+											return;
+										}
+										self.api.getSettings().then(function(settings) {
+											if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+												self.api.setUrl(tab.id, data.prev.url);
+											}
+										});
+									});
 								});
-							});
-						} else {
-							self.api.setUrl(tab.id, data.prev.url);
-						}
-						break;
-					case 'nextBookmark':
-						if (!data || !data.next) {
-							self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
-								self.getInfo(url).then(function (data) {
-									if (!data) {
-										self.api.notify('Page not bookmarked');
-										return;
-									}
-									if (!data.next) {
-										self.api.notify('Reached the end of the bookmark folder');
-										return;
-									}
-									if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
-										self.api.setUrl(tab.id, data.next.url);
-									}
+							} else {
+								self.api.setUrl(tab.id, data.prev.url);
+							}
+							break;
+						case 'nextBookmark':
+							if (!data || !data.next) {
+								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
+									self.getInfo(url).then(function (data) {
+										data=self.handleDuplicates(data,tab);
+										if (!data) {
+											self.api.notify('Page not bookmarked');
+											return;
+										}
+										if (!data.next) {
+											self.api.notify('Reached the end of the bookmark folder');
+											return;
+										}
+										if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+											self.api.setUrl(tab.id, data.next.url);
+										}
+									});
 								});
-							});
-						} else {
-							self.api.setUrl(tab.id, data.next.url);
+							} else {
+								self.api.setUrl(tab.id, data.next.url);
+							}
+							break;
 						}
-						break;
-					}
+					});
 				});
 			});
 		},
@@ -356,23 +370,10 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					function walk(tree, path) {
-						var result = null;
+						var result = [];
 
-						function max(str, size) {
-							if (!str)
-								return '';
-							if (str.length <= size - 1)
-								return str;
-							return str.substr(0, size) + '\u2026';
-						}
-
-						function setResultOrNotify(r, itm) {
-							if (result) {
-								result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
-								result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
-							} else {
-								result = r;
-							}
+						function setResult(r, itm) {
+							result=result.concat(r);
 						}
 
 						if (tree.title) {
@@ -387,7 +388,7 @@
 							if (itm.children) {
 								var r = walk(itm, path);
 								if (r)
-									setResultOrNotify(r, itm);
+									setResult(r, itm);
 							}
 							if (ApiWrapper.sameUrls(itm.url, url) >= 2) {
 								var prev = null;
@@ -404,7 +405,7 @@
 										break;
 									}
 								}
-								setResultOrNotify({
+								setResult({
 									folder : tree,
 									prev : prev,
 									current : itm,
@@ -450,6 +451,66 @@
 				document.body.appendChild(frl);
 			}
 			frl.setAttribute('href',url);
+		},
+		lastExploredFolderId:null,
+		handleDuplicates: function(arr,tab) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+
+				function max(str, size) {
+					if (!str)
+						return '';
+					if (str.length <= size - 1)
+						return str;
+					return str.substr(0, size) + '\u2026';
+				}
+
+				switch (arr.length) {
+					case 0:
+						resolve(null);
+						break;
+					case 1:
+						var result=arr[0];
+						self.lastExploredFolderId=result.folder.id;
+						resolve(result);
+						break;
+					default:
+						self.api.getListOfUrls(tab.id).then(function (urls) {
+							var result=[];
+							if (self.lastExploredFolderId) {
+								result=arr.filter(function(itm) {
+										return itm.folder.id==self.lastExploredFolderId;
+									});
+							}
+							if (!result.length||result.length>1) {
+								if (urls.length) {
+									for (var i=1; i<5; i++) {
+										var url=urls[urls.length-i];
+										result=arr.filter(function(itm) {
+											return (itm.prev && ApiWrapper.sameUrls(itm.prev.url,url)>=2) ||
+												(itm.next && ApiWrapper.sameUrls(itm.next.url,url)>=2);
+										});
+										if (result.length) break;
+									}
+								}
+							}
+							result=result.length?result[0]:arr[0];
+							self.api.getSettings().then(function(settings) {
+								if (settings.showDuplicateNotifications) {
+									result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
+									for (var i=0; i<arr.length; i++) {
+										var r=arr[i];
+										//if (r==result) continue;
+										result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
+									}
+								}
+								resolve(result);
+							});
+						});
+						break;
+				}
+			});
+		return promise;
 		}
 	};
 

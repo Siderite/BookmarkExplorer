@@ -22,6 +22,8 @@
 		var btnAddFolderName = $('#btnAddFolderName', context);
 		var chkPreloadNext = $('#chkPreloadNext', context);
 		var chkShowCurrentIndex = $('#chkShowCurrentIndex', context);
+		var chkDuplicateNotifications = $('#chkDuplicateNotifications', context);
+		var chkAlwaysGoToNextBookmark = $('#chkAlwaysGoToNextBookmark', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -62,6 +64,21 @@
 				settings.showCurrentIndex = $(this).prop('checked');
 				api.setSettings(settings);
 			});
+			chkDuplicateNotifications
+			.prop('checked', settings.showDuplicateNotifications)
+			.click(function () {
+				settings.showDuplicateNotifications = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+			chkAlwaysGoToNextBookmark
+			.prop('checked', settings.alwaysGoToNextBookmark)
+			.click(function () {
+				settings.alwaysGoToNextBookmark = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+
+
+
 			var n={};
 			(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
 				if (name) n[name]=true;
