@@ -110,8 +110,8 @@
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.getInfo(url).then(function (data) {
-				self.api.selectOrNew(manageUrl).then(function (tab) {
-					self.handleDuplicates(data,tab).then(function(data) {
+				self.handleDuplicates(data,tab).then(function(data) {
+					self.api.selectOrNew(manageUrl).then(function (tab) {
 						self.api.sendMessage(tab.id, data);
 					});
 				});
