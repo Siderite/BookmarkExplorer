@@ -321,19 +321,20 @@
 							if (!data || !data.prev) {
 								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 									self.getInfo(url).then(function (data) {
-										data=self.handleDuplicates(data,tab);
-										if (!data) {
-											self.api.notify('Page not bookmarked');
-											return;
-										}
-										if (!data.prev) {
-											self.api.notify('Reached the start of the bookmark folder');
-											return;
-										}
-										self.api.getSettings().then(function(settings) {
-											if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
-												self.api.setUrl(tab.id, data.prev.url);
+										self.handleDuplicates(data,tab).then(function(data) {
+											if (!data) {
+												self.api.notify('Page not bookmarked');
+												return;
 											}
+											if (!data.prev) {
+												self.api.notify('Reached the start of the bookmark folder');
+												return;
+											}
+											self.api.getSettings().then(function(settings) {
+												if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+													self.api.setUrl(tab.id, data.prev.url);
+												}
+											});
 										});
 									});
 								});
@@ -345,18 +346,21 @@
 							if (!data || !data.next) {
 								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 									self.getInfo(url).then(function (data) {
-										data=self.handleDuplicates(data,tab);
-										if (!data) {
-											self.api.notify('Page not bookmarked');
-											return;
-										}
-										if (!data.next) {
-											self.api.notify('Reached the end of the bookmark folder');
-											return;
-										}
-										if (confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
-											self.api.setUrl(tab.id, data.next.url);
-										}
+										self.handleDuplicates(data,tab).then(function(data) {
+											if (!data) {
+												self.api.notify('Page not bookmarked');
+												return;
+											}
+											if (!data.next) {
+												self.api.notify('Reached the end of the bookmark folder');
+												return;
+											}
+											self.api.getSettings().then(function(settings) {
+												if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+													self.api.setUrl(tab.id, data.next.url);
+												}
+											});
+										});
 									});
 								});
 							} else {
@@ -491,8 +495,11 @@
 								result=arr.filter(function(itm) {
 										return itm.folder.id==self.lastExploredFolderId;
 									});
+								if (result.length>1) {
+									arr=result;
+								}
 							}
-							if (!result.length||result.length>1) {
+							if (result.length!=1) {
 								if (urls.length) {
 									for (var i=1; i<5; i++) {
 										var url=urls[urls.length-i];
@@ -505,6 +512,7 @@
 								}
 							}
 							result=result.length?result[0]:arr[0];
+							self.lastExploredFolderId=result.folder.id;
 							self.api.getSettings().then(function(settings) {
 								if (settings.showDuplicateNotifications) {
 									result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
