@@ -178,12 +178,17 @@
 						} else {
 							self.api.removeMenuItem('nextBookmark');
 						}
+						if (data && data.next && settings.prevNextContext) {
+							self.api.createMenuItem('skipBookmark', 'Skip bookmark (move it to the end of the folder)');
+						} else {
+							self.api.removeMenuItem('skipBookmark');
+						}
 						self.api.removeMenuItem('readLinkLater');
 						self.api.removeMenuItem('readPageLater');
 						if (settings.readLaterContext) {
 							self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
 							if (settings.enableBookmarkPage) {
-								self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"/*, "frame", "selection", "editable", "image", "video", "audio"*/]});
+								self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"]});
 							}
 							var n={};
 							(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
@@ -331,7 +336,7 @@
 												return;
 											}
 											self.api.getSettings().then(function(settings) {
-												if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+												if (settings.skipPageNotBookmarkedOnNavigate || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 													self.api.setUrl(tab.id, data.prev.url);
 												}
 											});
@@ -356,7 +361,7 @@
 												return;
 											}
 											self.api.getSettings().then(function(settings) {
-												if (settings.alwaysGoToNextBookmark || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
+												if (settings.skipPageNotBookmarkedOnNavigate || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 													self.api.setUrl(tab.id, data.next.url);
 												}
 											});
@@ -366,6 +371,21 @@
 							} else {
 								self.api.setUrl(tab.id, data.next.url);
 							}
+							break;
+						case 'skipBookmark':
+							if (!data) {
+								self.api.notify('Page not bookmarked');
+								return;
+							}
+							if (!data.next) {
+								self.api.notify('Reached the end of the bookmark folder');
+								return;
+							}
+							var bm=ApiWrapper.clone(data.current);
+							delete bm.index;
+							self.api.createBookmarks(bm)
+							self.api.removeBookmarksById([bm.id]);
+							self.api.setUrl(tab.id, data.next.url);
 							break;
 						}
 					});

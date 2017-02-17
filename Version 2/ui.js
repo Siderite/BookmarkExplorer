@@ -210,11 +210,59 @@
 					items.eq(index).removeClass('current');
 					index++;
 					items.eq(index)
+						.addClass('current')
+						.bringIntoView({
+							parent : target
+						});
+				}
+				break;
+			case 33: //PageUp
+				if (!$(e.target).is('body')&&!(flt&&$(e.target).is(flt)))
+					return;
+				e.preventDefault();
+				items.eq(index).removeClass('current');
+				index=Math.max(0,index-20);
+				items.eq(index)
 					.addClass('current')
 					.bringIntoView({
 						parent : target
 					});
-				}
+				break;
+			case 34: //PageDown
+				if (!$(e.target).is('body')&&!(flt&&$(e.target).is(flt)))
+					return;
+				e.preventDefault();
+				items.eq(index).removeClass('current');
+				index=Math.min(items.length-1,index+20);
+				items.eq(index)
+					.addClass('current')
+					.bringIntoView({
+						parent : target
+					});
+				break;
+			case 36: //Home
+				if (!$(e.target).is('body')&&!(flt&&$(e.target).is(flt)))
+					return;
+				e.preventDefault();
+				items.eq(index).removeClass('current');
+				index=0;
+				items.eq(index)
+				.addClass('current')
+				.bringIntoView({
+					parent : target
+				});
+				break;
+			case 35: //End
+				if (!$(e.target).is('body')&&!(flt&&$(e.target).is(flt)))
+					return;
+				e.preventDefault();
+				items.eq(index).removeClass('current');
+				index=items.length-1;
+				items.eq(index)
+				.addClass('current')
+				.bringIntoView({
+					parent : target
+				});
 				break;
 			case 32: //Space
 				if (!$(e.target).is('body'))

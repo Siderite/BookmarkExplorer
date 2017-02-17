@@ -30,7 +30,9 @@
 		<div id="divSettings">
 			<ul id="ulSettings">
 			<li>
-			<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Next bookmark context menu</label>
+			<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Skip/Next context menus</label>
+			</li><li>
+			<input type="checkbox" id="chkSkipButton"/><label for="chkSkipButton">Enable Skip Bookmark button</label>
 			</li><li>
 			<input type="checkbox" id="chkManageContext"/><label for="chkManageContext">Enable Manage context menu</label>
 			</li><li>
@@ -46,7 +48,7 @@
 			<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks" title="Even if you delete them manually or some other application deletes them, store them for later retrieval">Store bookmarks deleted anywhere</label>
 			</li><li>
 			<span title="The same functionality as bookmark in Read Later">Read later for current page: </span>
-			<input type="checkbox" id="chkEnableBookmarkPage"/><label for="chkEnableBookmarkPage" title="Enable bookmark current page">Enable</label>
+			<input type="checkbox" id="chkEnableBookmarkPage"/><label for="chkEnableBookmarkPage" title="Enables bookmark current page">Enable</label>
 			<input type="checkbox" id="chkConfirmBookmarkPage"/><label for="chkConfirmBookmarkPage" title="Asks for confirmation (as to differentiate from read link)">Confirm</label>
 			</li><li>
 			<label for="txtAutoClearDeleted" title="The records will be cleared after the number of days entered">How many days to remember deleted bookmarks:</label><br/><input type="text" id="txtAutoClearDeleted"/>
@@ -69,7 +71,7 @@
 			<li>
 			<input type="checkbox" id="chkDuplicateNotifications"/><label for="chkDuplicateNotifications">Duplicate bookmark notifications</label>
 			</li><li>
-			<input type="checkbox" id="chkAlwaysGoToNextBookmark"/><label for="chkAlwaysGoToNextBookmark">Always navigate from last bookmarked url</label>
+			<input type="checkbox" id="chkSkipPageNotBookmarkedOnNavigate"/><label for="chkSkipPageNotBookmarkedOnNavigate" title="Do not show page not bookmarked popup when navigating">Always navigate from last bookmarked url</label>
 			</li>
 			</ul>
 		</div>

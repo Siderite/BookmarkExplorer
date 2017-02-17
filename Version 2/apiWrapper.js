@@ -21,7 +21,7 @@
 		}
 	};
 
-	var regUrl = /^\s*([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
+	var regUrl = /^\s*(?:(http|https):)?([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
 
 	function ApiWrapper(chr) {
 		if (!chr)
@@ -36,27 +36,38 @@
 			return 0; // empty URLs
 		var m1 = regUrl.exec(u1.toLowerCase());
 		var m2 = regUrl.exec(u2.toLowerCase());
-		if (m1[1] != m2[1])
-			return 0; //different
 		if (m1[2] != m2[2])
-			return 1; //same host
+			return 0; //different
 		if (m1[3] != m2[3])
+			return 1; //same host
+		if (m1[4] != m2[4])
 			return 2; //same host and parameters
-		return 3; //same host and parameters and hash
+		if (!m1[1] || m1[1] != m2[1])
+			return 3; //same host, parameters and scheme (or unknown scheme)
+		return 4; //same host and parameters and hash and scheme
 	};
 
 	ApiWrapper.throttle = function (f, time) {
 		time =  + (time) || 500;
-		var timeout = null;
-		return function () {
-			var self = this;
-			var args = arguments;
-			if (timeout)
-				clearTimeout(timeout);
-			timeout = setTimeout(function () {
-					f.apply(self, args);
-				}, time);
-		};
+	    var timeout=null;
+	    var c=function(){ clearTimeout(timeout); timeout=null; };
+	    var t=function(fn){ timeout=setTimeout(fn,wait); };
+	    return function() {
+	        var context=this;
+	        var args=arguments;
+	        var f=function(){ fn.apply(context,args); };
+	        if (!timeout) {
+	            t(c);
+	            f();
+	        } else {
+	            c();
+	            t(f);
+	        }
+	    }
+	}
+
+	ApiWrapper.clone = function(obj) {
+		return JSON.parse(JSON.stringify(obj));
 	};
 
 	ApiWrapper.getIconForUrl = function (url) {
@@ -202,6 +213,7 @@
 			settings = settings || {};
 			var data = {
 				prevNextContext : typeof(settings.prevNextContext) == 'undefined' ? false : !!settings.prevNextContext,
+				hideSkipButton : typeof(settings.hideSkipButton) == 'undefined' ? false : !!settings.hideSkipButton,
 				manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
 				readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
 				readLaterFolderName : settings.readLaterFolderName || 'Read Later',
@@ -213,7 +225,7 @@
 				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext,
 				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex,
 				showDuplicateNotifications : typeof(settings.showDuplicateNotifications) == 'undefined' ? true : !!settings.showDuplicateNotifications,
-				alwaysGoToNextBookmark : typeof(settings.alwaysGoToNextBookmark) == 'undefined' ? false : !!settings.alwaysGoToNextBookmark
+				skipPageNotBookmarkedOnNavigate : typeof(settings.skipPageNotBookmarkedOnNavigate) == 'undefined' ? false : !!settings.skipPageNotBookmarkedOnNavigate
 			};
 			return data;
 		},
@@ -477,9 +489,10 @@
 					var nodes = [];
 					var k = bms.length;
 					bms.forEach(function (bm) {
-						delete bm.dateAdded;
-						delete bm.id;
-						self.chr.bookmarks.create(bm, function (node) {
+						var newBm=ApiWrapper.clone(bm);
+						delete newBm.dateAdded;
+						delete newBm.id;
+						self.chr.bookmarks.create(newBm, function (node) {
 							nodes.push(node);
 							k--;
 							if (k == 0)
@@ -587,7 +600,7 @@
 			});
 		},
 		createMenuItem : function (id, title, parentId) {
-			var contexts = ["page", "frame", "selection", "link", "editable", "image", "video", "audio"];
+			var contexts = ["all"];
 			if (typeof(id) == 'object') {
 				var options = id;
 				id = options.id;

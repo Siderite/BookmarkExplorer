@@ -13,39 +13,47 @@
 *- store time of deletion of a bookmark
 *- auto remove deleted bookmarks after a set time?
 *- have multiple configurable folders when adding to them to read later
-#- store parent name when deleting bookmarks
-?- use sync instead of local storage (configurable)
-- icons for various sizes and DPIs 16,32,48,64,128
 *- menu for Read link later should appear on links only, another should say "Read this page later" in any other case
-#- select a piece of a page and bookmark it somehow, perhaps personal notes as well
-- for version 3, separate the extension into separately testable modules
 *- redesign the menu: two icons for toggle all/previous and structure the menu as: Delete, Restore and export/import page
-- create a better export/import page, with options for saving the bookmarks as html, url text list, Chrome bookmarks file, etc. as well as importing from several formats
-?- create web page from selected items (drag and drop to reorder)
-- read later all tabs in window
-#- setting for recursive (in folder) navigation
-- option to show the manage list while browsing
-#- encrypted tabs
-#- tab managing interface
-- what about tabs that people want to persist? Keep them as reference?
 *- have Read Page Later functionality disabled by default. One can just bookmark it with Ctrl-D.
-- bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
-- bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow? Or is it linked to pages with no favico?
 *- show the number of items in Read Later folder(s) or active folder for the current link
-- check the extension looks good on all browser themes (use relative colors)
-- warn about duplicates in the folder in Manage and provide a way to remove duplicates
 *- bug: URLs ending with ? are not considered URLs resulting in an error in background page
 *- bug: in some unclear situations (multiple screens? some offending third party) chrome.tabs.query with currentWindow or lastFocusedWindow returns nothing, while without may return multiple results.
-- synchronize bookmarks for Read Later across devices
-#- bug: duplicate bookmarks following each other block the advance of the reading
 *- idea: select all duplicates in the Read Later folder
 *- idea: lock the Manager on a specific folder (Autoselect function that one can disable?)
-- a read and delete bookmark sort of navigation
-- clear marketing URLs
-- skip feature: move bookmark at the end of the folder and advance to the next item
-- Feature request: URLs like these http://eac-codecollab2.eac.ad.ea.com/ui#review:id=106941 appear as duplicates. Let the user configure what is considered duplicate.
 *- FR: when finding duplicates, use the last bookmarked page to find the best next link
 *- FR: settings to turn off various notifications
 	*- duplicates
 	*- go to next bookmarked page prompt
 *- Advanced settings section, coming with warning
+*- lower the importance of https/http differences
+
+#- store parent name when deleting bookmarks
+#- select a piece of a page and bookmark it somehow, perhaps personal notes as well
+#- setting for recursive (in folder) navigation
+#- encrypted tabs
+#- tab managing interface
+#- bug: duplicate bookmarks following each other block the advance of the reading
+
+?- use sync instead of local storage (configurable)
+- icons for various sizes and DPIs 16,32,48,64,128
+- for version 3, separate the extension into testable modules
+- create a better export/import page, with options for saving the bookmarks as html, url text list, Chrome bookmarks file, etc. as well as importing from several formats
+?- create web page from selected items (drag and drop to reorder)
+- read later all tabs in window
+- option to show the manage list while browsing
+?- what about tabs that people want to persist? Keep them as reference?
+- bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
+- bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow? Or is it linked to pages with no favico?
+- check the extension looks good on all browser themes (use relative colors)
+*- provide a way to remove duplicates
+- synchronize bookmarks for Read Later across devices
+#- a read and delete bookmark sort of navigation
+- clean URLs of marketing parameters
+*- skip feature: move bookmark at the end of the folder and advance to the next item
+- Feature request: URLs like these http://eac-codecollab2.eac.ad.ea.com/ui#review:id=106941 appear as duplicates. Let the user configure what is considered duplicate.
+*- bug: page down and up in bookmark list should work like arrows
+*- warn about duplicates in the folder in Manage
+*- only show duplicate button when there are duplicates / use a warning color
+#- bug: if you change the key bindings, the title of the menu item doesn't reflect it
+*- icon for the menu items

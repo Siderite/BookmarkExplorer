@@ -169,12 +169,26 @@
 				}
 				return elem;
 			}
+			function anyDuplicates(items) {
+				for (var i=0; i<items.length; i++) {
+					for (var j=0; j<i; j++) {
+						if (ApiWrapper.sameUrls(items[i].url,items[j].url)>=2) {
+							return true;
+						}
+					}
+				}
+				return false;
+			}
 
 			function refreshMenuOptions() {
 				var hasData = !!(currentData && currentData.folder);
+				var hasDuplicates=false;
+				if (hasData) {
+					hasDuplicates=anyDuplicates(currentData.folder.children);
+				}
 				imgToggleAll.toggle(hasData);
 				imgToggleBefore.toggle(hasData);
-				imgSelectDuplicates.toggle(hasData);
+				imgSelectDuplicates.toggle(hasData&&hasDuplicates);
 				spnHoldFolder.toggle(hasData);
 				var ul = tree.find('>ul');
 				var checkedInputs = ul.find('input:nothidden:checked');

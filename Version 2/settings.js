@@ -11,6 +11,7 @@
 		var aShortcuts = $('#aShortcuts', context);
 		var divShortcuts = $('#divShortcuts', context);
 		var chkPrevNextContext = $('#chkPrevNextContext', context);
+		var chkSkipButton = $('#chkSkipButton', context);
 		var chkManageContext = $('#chkManageContext', context);
 		var chkReadLaterContext = $('#chkReadLaterContext', context);
 		var chkEnableBookmarkPage = $('#chkEnableBookmarkPage', context);
@@ -23,13 +24,19 @@
 		var chkPreloadNext = $('#chkPreloadNext', context);
 		var chkShowCurrentIndex = $('#chkShowCurrentIndex', context);
 		var chkDuplicateNotifications = $('#chkDuplicateNotifications', context);
-		var chkAlwaysGoToNextBookmark = $('#chkAlwaysGoToNextBookmark', context);
+		var chkSkipPageNotBookmarkedOnNavigate = $('#chkSkipPageNotBookmarkedOnNavigate', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
 			.prop('checked', settings.prevNextContext)
 			.click(function () {
 				settings.prevNextContext = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+			chkSkipButton
+			.prop('checked', !settings.hideSkipButton)
+			.click(function () {
+				settings.hideSkipButton = !$(this).prop('checked');
 				api.setSettings(settings);
 			});
 			chkManageContext
@@ -70,10 +77,10 @@
 				settings.showDuplicateNotifications = $(this).prop('checked');
 				api.setSettings(settings);
 			});
-			chkAlwaysGoToNextBookmark
-			.prop('checked', settings.alwaysGoToNextBookmark)
+			chkSkipPageNotBookmarkedOnNavigate
+			.prop('checked', settings.skipPageNotBookmarkedOnNavigate)
 			.click(function () {
-				settings.alwaysGoToNextBookmark = $(this).prop('checked');
+				settings.skipPageNotBookmarkedOnNavigate = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 
