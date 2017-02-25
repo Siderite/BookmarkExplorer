@@ -51,9 +51,10 @@
 #- a read and delete bookmark sort of navigation
 - clean URLs of marketing parameters
 *- skip feature: move bookmark at the end of the folder and advance to the next item
-- Feature request: URLs like these http://eac-codecollab2.eac.ad.ea.com/ui#review:id=106941 appear as duplicates. Let the user configure what is considered duplicate.
+*- Feature request: URLs like these http://eac-codecollab2.eac.ad.ea.com/ui#review:id=106941 appear as duplicates. Let the user configure what is considered duplicate.
 *- bug: page down and up in bookmark list should work like arrows
 *- warn about duplicates in the folder in Manage
 *- only show duplicate button when there are duplicates / use a warning color
 #- bug: if you change the key bindings, the title of the menu item doesn't reflect it
 *- icon for the menu items
+- periodically notify users about leaving feedback about the explorer on the blog page

@@ -21,8 +21,6 @@
 		}
 	};
 
-	var regUrl = /^\s*(?:(http|https):)?([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
-
 	function ApiWrapper(chr) {
 		if (!chr)
 			throw "ApiWrapper needs an instance of chrome as a parameter";
@@ -31,47 +29,119 @@
 		this.init();
 	}
 
-	ApiWrapper.sameUrls = function (u1, u2) {
-		if (!u1 || !u2)
-			return 0; // empty URLs
-		var m1 = regUrl.exec(u1.toLowerCase());
-		var m2 = regUrl.exec(u2.toLowerCase());
-		if (m1[2] != m2[2])
-			return 0; //different
-		if (m1[3] != m2[3])
-			return 1; //same host
-		if (m1[4] != m2[4])
-			return 2; //same host and parameters
-		if (!m1[1] || m1[1] != m2[1])
-			return 3; //same host, parameters and scheme (or unknown scheme)
-		return 4; //same host and parameters and hash and scheme
-	};
-
-	ApiWrapper.throttle = function (f, time) {
+	ApiWrapper.throttle = function (fn, time) {
 		time =  + (time) || 500;
-	    var timeout=null;
-	    var c=function(){ clearTimeout(timeout); timeout=null; };
-	    var t=function(fn){ timeout=setTimeout(fn,wait); };
-	    return function() {
-	        var context=this;
-	        var args=arguments;
-	        var f=function(){ fn.apply(context,args); };
-	        if (!timeout) {
-	            t(c);
-	            f();
-	        } else {
-	            c();
-	            t(f);
-	        }
-	    }
+		var timeout = null;
+		var c = function () {
+			clearTimeout(timeout);
+			timeout = null;
+		};
+		var t = function (fn) {
+			timeout = setTimeout(fn, time);
+		};
+		return function () {
+			var context = this;
+			var args = arguments;
+			var f = function () {
+				fn.apply(context, args);
+			};
+			if (!timeout) {
+				t(c);
+				f();
+			} else {
+				c();
+				t(f);
+			}
+		}
 	}
 
-	ApiWrapper.clone = function(obj) {
+	ApiWrapper.clone = function (obj) {
 		return JSON.parse(JSON.stringify(obj));
 	};
 
 	ApiWrapper.getIconForUrl = function (url) {
 		return 'chrome://favicon/' + url;
+	};
+
+	ApiWrapper.urlComparisonDefault = '<default>';
+	ApiWrapper.isValidUrlComparisonSchema = function (text) {
+		if (!text || !text.trim())
+			return false;
+		var hasDefault = false;
+		var valid = true;
+		text.split(/\s*[\r\n]+\s*/).forEach(function (line) {
+			if (!line || !line.trim())
+				return;
+			if (/^#/.test(line))
+				return;
+			var m = /^([^\s]+)\s+((?:scheme|host|path|params|hash)(?:\s*,\s*(?:scheme|host|path|params|hash))*)$/i.exec(line);
+			if (!m)
+				valid = false;
+			if (m[1].toLowerCase() == ApiWrapper.urlComparisonDefault)
+				hasDefault = true;
+		});
+		return valid && hasDefault;
+	};
+	ApiWrapper.getComparisonOptions = function (url, schema) {
+		var o = null;
+		var def = null;
+		Object.keys(schema).forEach(function (fragment) {
+			if (fragment == ApiWrapper.urlComparisonDefault)
+				def = schema[fragment];
+			if (url.includes(fragment))
+				o = schema[fragment];
+		});
+		if (!def)
+			self.log('urlComparisonSchema default not set!');
+		return o || def;
+	};
+	var regUrl = /^\s*(?:([^:]+):(?:\/\/)?)?([^\/\?#]*)[\/]?([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
+	ApiWrapper.compareUrls = function (u1, u2, schema, extraOptions) {
+		if (!schema) {
+			throw "No comparison schema set";
+		}
+
+		u1 = u1 && u1.trim() ? u1.toLowerCase() : '';
+		u2 = u2 && u2.trim() ? u2.toLowerCase() : '';
+
+		var o1 = ApiWrapper.getComparisonOptions(u1, schema);
+		var o2 = ApiWrapper.getComparisonOptions(u2, schema);
+		var options = extraOptions || {};
+		options.scheme = options.scheme || o1.scheme || o2.scheme;
+		options.host = options.host || o1.host || o2.host;
+		options.path = options.path || o1.path || o2.path;
+		options.params = options.params || o1.params || o2.params;
+		options.hash = options.hash || o1.hash || o2.hash;
+
+		var m1 = u1 ? regUrl.exec(u1) : ['', '', '', '', ''];
+		var m2 = u2 ? regUrl.exec(u2) : ['', '', '', '', ''];
+
+		var result = 0;
+		var different = false;
+		if (m1[1] || 'http' != m2[1] || 'http') {
+			result += 20;
+			different = different || options.scheme;
+		}
+		if (m1[2] != m2[2]) {
+			result += 50;
+			different = different || options.host;
+		}
+		if (m1[3] != m2[3]) {
+			result += 40;
+			different = different || options.path;
+		}
+		if (m1[4] != m2[4]) {
+			result += 30;
+			different = different || options.params;
+		}
+		if (m1[5] != m2[5]) {
+			result += 10;
+			different = different || options.hash;
+		}
+		return {
+			different : different,
+			value : result
+		};
 	};
 
 	ApiWrapper.prototype = {
@@ -85,7 +155,7 @@
 			}
 		},
 		init : function () {
-			self = this;
+			var self = this;
 			self.handlers = [];
 			if (self.chr && self.chr.tabs && self.chr.tabs.onUpdated) {
 				self.onUpdatedTab(function (tabId, changeInfo, tab) {
@@ -96,15 +166,39 @@
 			}
 			if (self.chr && self.chr.tabs && self.chr.tabs.onRemoved) {
 				self.onRemovedTab(function (tabId) {
-					self.clearUrlHistory(/*tabId*/
-					);
+					self.clearUrlHistory(/*tabId*/);
 				});
 			}
 			if (self.chr && self.chr.tabs && self.chr.tabs.onActivated) {
 				self.onActivatedTab(function (data) {
-					if (data.tabId) self.lastActivatedTabId=data.tabId;
+					if (data.tabId)
+						self.lastActivatedTabId = data.tabId;
 				});
 			}
+		},
+		getUrlComparisonSchema : function (text) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+					self.getSettings().then(function (settings) {
+						var urlComparisonSchema = {};
+						settings.urlComparisonSchema.split(/\s*[\r\n]+\s*/).forEach(function (line) {
+							if (!line || !line.trim())
+								return;
+							if (/^#/.test(line))
+								return;
+							var m = /^([^\s]+)\s+((?:scheme|host|path|params|hash)(?:\s*,\s*(?:scheme|host|path|params|hash))*)$/i.exec(line);
+							urlComparisonSchema[m[1].toLowerCase()] = {
+								scheme : m[2].includes('scheme'),
+								host : m[2].includes('host'),
+								path : m[2].includes('path'),
+								params : m[2].includes('params'),
+								hash : m[2].includes('hash')
+							};
+						});
+						resolve(urlComparisonSchema);
+					});
+				});
+			return promise;
 		},
 		getCurrentTab : function () {
 			var self = this;
@@ -122,7 +216,9 @@
 								self.chr.tabs.query({
 									'active' : true
 								}, function (tabs) {
-									tab = tabs.filter(function(t) { return t.id==self.lastActivatedTabId; })[0];
+									tab = tabs.filter(function (t) {
+											return t.id == self.lastActivatedTabId;
+										})[0];
 									if (tab) {
 										resolve(tab);
 									} else {
@@ -225,7 +321,10 @@
 				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext,
 				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex,
 				showDuplicateNotifications : typeof(settings.showDuplicateNotifications) == 'undefined' ? true : !!settings.showDuplicateNotifications,
-				skipPageNotBookmarkedOnNavigate : typeof(settings.skipPageNotBookmarkedOnNavigate) == 'undefined' ? false : !!settings.skipPageNotBookmarkedOnNavigate
+				skipPageNotBookmarkedOnNavigate : typeof(settings.skipPageNotBookmarkedOnNavigate) == 'undefined' ? false : !!settings.skipPageNotBookmarkedOnNavigate,
+				urlComparisonSchema : ApiWrapper.isValidUrlComparisonSchema(settings.urlComparisonSchema)
+				 ? settings.urlComparisonSchema
+				 : ApiWrapper.urlComparisonDefault + ' host, path\r\n#examples:\r\n#www.somedomain.com scheme, host, path, params, hash\r\n#/documents path, hash'
 			};
 			return data;
 		},
@@ -264,12 +363,12 @@
 		},
 		setBadge : function (tabId, text, color) {
 			var self = this;
-			color=color||'black';
+			color = color || 'black';
 			var promise = new Promise(function (resolve, reject) {
-					var id=+(tabId);
+					var id =  + (tabId);
 					if (id) {
 						self.chr.browserAction.setBadgeText({
-							text : (text||'')+'',
+							text : (text || '') + '',
 							tabId : id
 						});
 						self.chr.browserAction.setBadgeBackgroundColor({
@@ -284,10 +383,10 @@
 		setTitle : function (tabId, text) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-					var id=+(tabId);
+					var id =  + (tabId);
 					if (id) {
 						self.chr.browserAction.setTitle({
-							title : (text||'')+'',
+							title : (text || '') + '',
 							tabId : id
 						});
 					}
@@ -298,8 +397,8 @@
 		getExtensionUrl : function (file) {
 			return this.chr.extension.getURL(file);
 		},
-		getOptionsUrl: function() {
-			return 'chrome://extensions/?options='+this.chr.runtime.id;
+		getOptionsUrl : function () {
+			return 'chrome://extensions/?options=' + this.chr.runtime.id;
 		},
 		getTabById : function (tabId) {
 			var self = this;
@@ -410,32 +509,31 @@
 				});
 			return promise;
 		},
-		getBookmarksByUrl : function (url, threshold, tree) {
+		getBookmarksByUrl : function (url, extraOptions, tree) {
 			var self = this;
-			threshold =  + (threshold) || 2;
-			if (!tree) {
-				var promise = new Promise(function (resolve, reject) {
-						self.getTree().then(function (tree) {
-							self.getBookmarksByUrl(url, threshold, tree).then(resolve);
-						});
-					});
-				return promise;
-			}
-			function walk(tree, result) {
-				var arr = tree.children || tree;
-				arr.forEach(function (itm) {
-					if (itm.children) {
-						walk(itm, result);
-					}
-					if (ApiWrapper.sameUrls(url, itm.url) >= threshold) {
-						result.push(itm);
-					}
-				});
-			};
 			var promise = new Promise(function (resolve, reject) {
-					var result = [];
-					walk(tree, result);
-					resolve(result);
+					if (!tree) {
+						self.getTree().then(function (tree) {
+							self.getBookmarksByUrl(url, extraOptions, tree).then(resolve);
+						});
+						return;
+					}
+					self.getUrlComparisonSchema().then(function (schema) {
+						var result = [];
+						function walk(tree) {
+							var arr = tree.children || tree;
+							arr.forEach(function (itm) {
+								if (itm.children) {
+									walk(itm);
+								}
+								if (!ApiWrapper.compareUrls(url, itm.url, schema, extraOptions).different) {
+									result.push(itm);
+								}
+							});
+						}
+						walk(tree);
+						resolve(result);
+					});
 				});
 			return promise;
 		},
@@ -489,7 +587,7 @@
 					var nodes = [];
 					var k = bms.length;
 					bms.forEach(function (bm) {
-						var newBm=ApiWrapper.clone(bm);
+						var newBm = ApiWrapper.clone(bm);
 						delete newBm.dateAdded;
 						delete newBm.id;
 						self.chr.bookmarks.create(newBm, function (node) {

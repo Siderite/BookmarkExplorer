@@ -25,6 +25,8 @@
 		var chkShowCurrentIndex = $('#chkShowCurrentIndex', context);
 		var chkDuplicateNotifications = $('#chkDuplicateNotifications', context);
 		var chkSkipPageNotBookmarkedOnNavigate = $('#chkSkipPageNotBookmarkedOnNavigate', context);
+		var txtCustomUrlComparison = $('#txtCustomUrlComparison', context);
+		var txtCustomUrlComparisonInvalid = $('#txtCustomUrlComparisonInvalid', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -151,6 +153,18 @@
 			.click(function () {
 				settings.preloadNext = $(this).prop('checked');
 				api.setSettings(settings);
+			});
+			txtCustomUrlComparison
+			.val(settings.urlComparisonSchema)
+			.on('keyup paste', function () {
+				var val = $(this).val();
+				if (ApiWrapper.isValidUrlComparisonSchema(val)) {
+					settings.urlComparisonSchema = val;
+					api.setSettings(settings);
+					txtCustomUrlComparisonInvalid.hide();
+				} else {
+					txtCustomUrlComparisonInvalid.show();
+				}
 			});
 		});
 

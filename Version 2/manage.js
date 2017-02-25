@@ -28,8 +28,8 @@
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
 			var divFilter = $('#divFilter', context);
-			var spnHoldFolder=$('#spnHoldFolder', context);
-			var chkHoldFolder=$('#chkHoldFolder', context);
+			var spnHoldFolder = $('#spnHoldFolder', context);
+			var chkHoldFolder = $('#chkHoldFolder', context);
 
 			divFilter.find('img').click(function () {
 				divFilter.find('input').val('').trigger('change');
@@ -57,14 +57,14 @@
 
 			api.onMessage(function (data) {
 				if (data == 'current') {
-					refreshFromCurrent();
+					//refreshFromCurrent();
 					return;
-				} 
+				}
 				if (!chkHoldFolder.is(':checked')) {
 					refresh(data);
 					return;
 				}
-				if (currentData&&currentData.folder&&data&&data.folder&&currentData.folder.id==data.folder.id) {
+				if (currentData && currentData.folder && data && data.folder && currentData.folder.id == data.folder.id) {
 					refresh(data);
 				} else {
 					refreshFromCurrent();
@@ -75,18 +75,19 @@
 				if (!currentData || !currentData.current) {
 					refresh();
 				} else {
-					app.getInfo(currentData.current.url).then(function(data) {
-						app.handleDuplicates(data,null).then(refresh);
+					app.getInfo(currentData.current.url).then(function (data) {
+						app.handleDuplicates(data, null).then(refresh);
 					});
 				}
 			}
 
-			var last=0;
+			var last = 0;
 
 			function refresh(data) {
-				var sdata=data?JSON.stringify(data):null;
-				if (sdata==last) return;
-				last=sdata;
+				var sdata = data ? JSON.stringify(data) : null;
+				if (sdata == last)
+					return;
+				last = sdata;
 				$(context).trigger('refresh');
 				var checkData = {};
 				tree.find('input[type=checkbox]').each(function () {
@@ -110,18 +111,19 @@
 				subheader.empty();
 				createTree(data.folder, checkData);
 				tree.find('input[type=checkbox]').click(refreshMenuOptions);
-				tree.find('a').each(function () {
-					if (ApiWrapper.sameUrls($(this).attr('href'), data.current.url) < 2)
-						return;
+				api.getUrlComparisonSchema().then(function (schema) {
+					tree.find('a').each(function () {
+						if (ApiWrapper.compareUrls($(this).attr('href'), data.current.url, schema).different)
+							return;
 
-					var par = $(this).parent();
-					par.addClass('selected');
+						var par = $(this).parent();
+						par.addClass('selected');
+					});
+					tree.find('.selected:visible').bringIntoView({
+						parent : tree
+					});
+					tree.trigger('filter');
 				});
-				tree.find('.selected:visible').bringIntoView({
-					parent : tree
-				});
-				tree.trigger('filter');
-				//refreshMenuOptions(); //replaced by trigger
 			}
 
 			function createTree(folder, checkData) {
@@ -169,10 +171,10 @@
 				}
 				return elem;
 			}
-			function anyDuplicates(items) {
-				for (var i=0; i<items.length; i++) {
-					for (var j=0; j<i; j++) {
-						if (ApiWrapper.sameUrls(items[i].url,items[j].url)>=2) {
+			function anyDuplicates(items, schema) {
+				for (var i = 0; i < items.length; i++) {
+					for (var j = 0; j < i; j++) {
+						if (!ApiWrapper.compareUrls(items[i].url, items[j].url, schema).different) {
 							return true;
 						}
 					}
@@ -181,24 +183,26 @@
 			}
 
 			function refreshMenuOptions() {
-				var hasData = !!(currentData && currentData.folder);
-				var hasDuplicates=false;
-				if (hasData) {
-					hasDuplicates=anyDuplicates(currentData.folder.children);
-				}
-				imgToggleAll.toggle(hasData);
-				imgToggleBefore.toggle(hasData);
-				imgSelectDuplicates.toggle(hasData&&hasDuplicates);
-				spnHoldFolder.toggle(hasData);
-				var ul = tree.find('>ul');
-				var checkedInputs = ul.find('input:nothidden:checked');
-				liRemoveBookmarks.toggle(!!checkedInputs.length);
+				api.getUrlComparisonSchema().then(function (schema) {
+					var hasData = !!(currentData && currentData.folder);
+					var hasDuplicates = false;
+					if (hasData) {
+						hasDuplicates = anyDuplicates(currentData.folder.children, schema);
+					}
+					imgToggleAll.toggle(hasData);
+					imgToggleBefore.toggle(hasData);
+					imgSelectDuplicates.toggle(hasData && hasDuplicates);
+					spnHoldFolder.toggle(hasData);
+					var ul = tree.find('>ul');
+					var checkedInputs = ul.find('input:nothidden:checked');
+					liRemoveBookmarks.toggle(!!checkedInputs.length);
 
-				api.getDeletedBookmarks().then(function (bookmarks) {
-					liManageDeleted.toggle(!!(bookmarks && bookmarks.length));
+					api.getDeletedBookmarks().then(function (bookmarks) {
+						liManageDeleted.toggle(!!(bookmarks && bookmarks.length));
+					});
+
+					refreshCounts();
 				});
-
-				refreshCounts();
 			}
 
 			function refreshCounts() {
@@ -313,10 +317,10 @@
 			function toggleAll() {
 				var ul = tree.find('>ul');
 				var val = 0;
-				ul.find('>li>div:nothidden>input').each(function() {
-					val+=($(this).is(':checked')?1:-1);
+				ul.find('>li>div:nothidden>input').each(function () {
+					val += ($(this).is(':checked') ? 1 : -1);
 				});
-				val=val<0;
+				val = val < 0;
 				ul.find('>li>div:nothidden>input').prop('checked', val);
 				refreshMenuOptions();
 			}
@@ -324,38 +328,40 @@
 			function toggleBefore() {
 				var ul = tree.find('>ul');
 				var val = 0;
-				var chks=$();
-				ul.find('>li>div:nothidden').each(function(idx) {
-					var chk=$('>input',this);
+				var chks = $();
+				ul.find('>li>div:nothidden').each(function (idx) {
+					var chk = $('>input', this);
 					if ($(this).is('.selected')) {
 						return false;
 					}
-					val+=(chk.is(':checked')?1:-1);
-					chks=chks.add(chk);
+					val += (chk.is(':checked') ? 1 : -1);
+					chks = chks.add(chk);
 				});
-				val=val<0;
+				val = val < 0;
 				chks.prop('checked', val);
 				refreshMenuOptions();
 			}
 
 			function selectDuplicates() {
-				var ul = tree.find('>ul');
-				var urls=[];
-				ul.find('>li>div:nothidden').each(function() {
-					var a=$('a',this);
-					var chk=$('input',this);
-					var url=a.attr('href');
-					var checked=false;
-					urls.forEach(function(u) {
-						if (ApiWrapper.sameUrls(u,url) >= 2) {
-							checked=true;
-							return false;
-						}
+				api.getUrlComparisonSchema().then(function (schema) {
+					var ul = tree.find('>ul');
+					var urls = [];
+					ul.find('>li>div:nothidden').each(function () {
+						var a = $('a', this);
+						var chk = $('input', this);
+						var url = a.attr('href');
+						var checked = false;
+						urls.forEach(function (u) {
+							if (!ApiWrapper.compareUrls(u, url, schema).different) {
+								checked = true;
+								return false;
+							}
+						});
+						chk.prop('checked', checked);
+						urls.push(url);
 					});
-					chk.prop('checked', checked);
-					urls.push(url);
+					refreshMenuOptions();
 				});
-				refreshMenuOptions();
 			}
 
 			function removeBookmarks() {

@@ -9,7 +9,7 @@
 		this.init(noInitialRefresh);
 	}
 
-	BookmarkExplorer.preloadedUrls={};
+	BookmarkExplorer.preloadedUrls = {};
 
 	BookmarkExplorer.prototype = {
 		init : function (noInitialRefresh) {
@@ -20,7 +20,7 @@
 					refresh();
 					if (changeInfo && changeInfo.status == 'complete') {
 						self.getInfo(tab.url).then(function (data) {
-							self.handleDuplicates(data,tab).then(function(data) {
+							self.handleDuplicates(data, tab).then(function (data) {
 								if (data && data.current && tab.url == data.current.url) {
 									var notify = self.api.notify.bind(self.api);
 									data.notifications.forEach(notify);
@@ -45,25 +45,25 @@
 				self.api.onCreatedBookmark(refresh);
 			}
 			if (self.api.onRemovedBookmark) {
-				var bookmarksToStore=[];
-				var removeBookmarksThrottled=ApiWrapper.throttle(function() {
-					self.api.addDeletedBookmarks(bookmarksToStore).then(function() {
-						bookmarksToStore.splice(0,10000);
-						refresh();
+				var bookmarksToStore = [];
+				var removeBookmarksThrottled = ApiWrapper.throttle(function () {
+						self.api.addDeletedBookmarks(bookmarksToStore).then(function () {
+							bookmarksToStore.splice(0, 10000);
+							refresh();
+						});
 					});
-				});
-				self.api.onRemovedBookmark(function(id,data) {
-					self.api.getSettings().then(function(settings) {
+				self.api.onRemovedBookmark(function (id, data) {
+					self.api.getSettings().then(function (settings) {
 						if (settings.storeAllDeletedBookmarks) {
-							if (data&&data.node) {
-								var bookmark=data.node;
-								bookmark.index=data.index;
-								bookmark.parentId=data.parentId;
-								(function() {
-									var f=function(bm) {
+							if (data && data.node) {
+								var bookmark = data.node;
+								bookmark.index = data.index;
+								bookmark.parentId = data.parentId;
+								(function () {
+									var f = function (bm) {
 										if (bm.url) {
 											bookmarksToStore.push(bm);
-										} else if (bm.children&&bm.children.length) {
+										} else if (bm.children && bm.children.length) {
 											bm.children.forEach(f);
 										}
 									};
@@ -112,7 +112,7 @@
 			self.getInfo(url).then(function (data) {
 				self.api.getCurrentTab().then(function (currentTab) {
 					self.api.selectOrNew(manageUrl).then(function (tab) {
-						self.handleDuplicates(data,currentTab).then(function(data) {
+						self.handleDuplicates(data, currentTab).then(function (data) {
 							self.api.sendMessage(tab.id, data);
 						});
 					});
@@ -145,12 +145,12 @@
 				var tab = tabs[0];
 				if (!tab)
 					return;
-				if (ownUrls.includes(currentTab.url)||currentTab.url.startsWith('chrome:')) {
+				if (ownUrls.includes(currentTab.url) || currentTab.url.startsWith('chrome:')) {
 					self.api.sendMessage(tab.id, "current");
 					return;
 				}
 				self.getInfo(currentTab.url).then(function (data) {
-					self.handleDuplicates(data,currentTab).then(function(data) {
+					self.handleDuplicates(data, currentTab).then(function (data) {
 						self.api.sendMessage(tab.id, data);
 					});
 				});
@@ -161,7 +161,7 @@
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.api.getSettings().then(function (settings) {
 				self.getInfo(currentTab.url).then(function (data) {
-					self.handleDuplicates(data,currentTab).then(function(data) {
+					self.handleDuplicates(data, currentTab).then(function (data) {
 						if (settings.manageContext) {
 							self.api.createMenuItem('manage', 'Manage bookmark folder');
 						} else {
@@ -186,28 +186,47 @@
 						self.api.removeMenuItem('readLinkLater');
 						self.api.removeMenuItem('readPageLater');
 						if (settings.readLaterContext) {
-							self.api.createMenuItem({id:'readLinkLater', title:'Read link later',contexts:["link"]});
-							if (settings.enableBookmarkPage) {
-								self.api.createMenuItem({id:'readPageLater', title:'Read page later',contexts:["page"]});
-							}
-							var n={};
-							(settings.readLaterFolderName||'Read Later').split(/,/).forEach(function(name) {
-								if (name) n[name]=true;
+							self.api.createMenuItem({
+								id : 'readLinkLater',
+								title : 'Read link later',
+								contexts : ["link"]
 							});
-							var names=Object.keys(n);
-							if (names.length>1) {
-								names.forEach(function(name) {
-									self.api.createMenuItem({id:'readLinkLater '+name, title:name,parentId:'readLinkLater',contexts:["link"]});
-									self.api.createMenuItem({id:'readPageLater '+name, title:name,parentId:'readPageLater',contexts:["page", "frame", "selection", "editable", "image", "video", "audio"]});
+							if (settings.enableBookmarkPage) {
+								self.api.createMenuItem({
+									id : 'readPageLater',
+									title : 'Read page later',
+									contexts : ["page"]
+								});
+							}
+							var n = {};
+							(settings.readLaterFolderName || 'Read Later').split(/,/).forEach(function (name) {
+								if (name)
+									n[name] = true;
+							});
+							var names = Object.keys(n);
+							if (names.length > 1) {
+								names.forEach(function (name) {
+									self.api.createMenuItem({
+										id : 'readLinkLater ' + name,
+										title : name,
+										parentId : 'readLinkLater',
+										contexts : ["link"]
+									});
+									self.api.createMenuItem({
+										id : 'readPageLater ' + name,
+										title : name,
+										parentId : 'readPageLater',
+										contexts : ["page", "frame", "selection", "editable", "image", "video", "audio"]
+									});
 								});
 							}
 						}
 						if (settings.showCurrentIndex && data) {
-							self.api.setBadge(currentTab.id,data.index+1,'#909090');
-							self.api.setTitle(currentTab.id,data.path+' : '+(data.index+1)+'/'+data.length);
+							self.api.setBadge(currentTab.id, data.index + 1, '#909090');
+							self.api.setTitle(currentTab.id, data.path + ' : ' + (data.index + 1) + '/' + data.length);
 						} else {
-							self.api.setBadge(currentTab.id,'');
-							self.api.setTitle(currentTab.id,'Siderite\'s Bookmark Explorer');
+							self.api.setBadge(currentTab.id, '');
+							self.api.setTitle(currentTab.id, 'Siderite\'s Bookmark Explorer');
 						}
 						if (settings.preloadNext && data && data.next) {
 							self.preload(data.next.url);
@@ -216,37 +235,39 @@
 				});
 			});
 		},
-		addReadLaterBookmark : function (bm,folderName) {
+		addReadLaterBookmark : function (bm, folderName) {
 			var self = this;
 			return new Promise(function (resolve, reject) {
-					self.api.getBookmarksBar().then(function (bar) {
-						self.api.getBookmarksByTitle(folderName).then(function (bms) {
-							var rl = bms.filter(function (itm) {
-									return itm.parentId == bar.id;
-								})[0];
-							if (!rl) {
-								self.api.createBookmarks({
-									parentId : bar.id,
-									title : folderName
-								}).then(function () {
-									self.addReadLaterBookmark(bm,folderName).then(resolve);
-								});
-								return;
-							}
-							self.api.getBookmarksByUrl(bm.url, 3, rl).then(function (existing) {
-								if (existing&&existing.length) {
-									self.api.notify('URL already added to the Read Later list');
-									resolve(existing);
-								} else {
-									bm.parentId = rl.id;
-									self.api.createBookmarks(bm).then(resolve);
-								}
+				self.api.getBookmarksBar().then(function (bar) {
+					self.api.getBookmarksByTitle(folderName).then(function (bms) {
+						var rl = bms.filter(function (itm) {
+								return itm.parentId == bar.id;
+							})[0];
+						if (!rl) {
+							self.api.createBookmarks({
+								parentId : bar.id,
+								title : folderName
+							}).then(function () {
+								self.addReadLaterBookmark(bm, folderName).then(resolve);
 							});
+							return;
+						}
+						self.api.getBookmarksByUrl(bm.url, {
+							params : true
+						}, rl).then(function (existing) {
+							if (existing && existing.length) {
+								self.api.notify('URL already added to the Read Later list');
+								resolve(existing);
+							} else {
+								bm.parentId = rl.id;
+								self.api.createBookmarks(bm).then(resolve);
+							}
 						});
 					});
+				});
 			});
 		},
-		readLater : function (url,folderName) {
+		readLater : function (url, folderName) {
 			var self = this;
 			var data = {
 				url : url,
@@ -263,7 +284,7 @@
 								self.addReadLaterBookmark({
 									url : data.url,
 									title : data.title
-								},folderName).then(function () {
+								}, folderName).then(function () {
 									if (eh)
 										eh.remove();
 									setTimeout(function () {
@@ -293,20 +314,20 @@
 		execute : function (command, info) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
-				if (command.startsWith('readLinkLater')||command.startsWith('readPageLater')) {
+				if (command.startsWith('readLinkLater') || command.startsWith('readPageLater')) {
 					if (!info)
 						return;
-					var folderName=command.substr(13/*length of readLinkLater and readPageLater*/).trim()||'Read Later';
+					var folderName = command.substr(13 /*length of readLinkLater and readPageLater*/).trim() || 'Read Later';
 					if (info.linkUrl) {
-						self.readLater(info.linkUrl,folderName);
+						self.readLater(info.linkUrl, folderName);
 						return;
 					}
 					self.api.getSettings().then(function (settings) {
-						if (info.pageUrl && (!settings.confirmBookmarkPage||confirm('No link selected. Do you want me to bookmark the current page?'))) {
+						if (info.pageUrl && (!settings.confirmBookmarkPage || confirm('No link selected. Do you want me to bookmark the current page?'))) {
 							self.addReadLaterBookmark({
 								url : tab.url,
 								title : tab.title
-							},folderName);
+							}, folderName);
 						}
 					});
 					return;
@@ -320,13 +341,13 @@
 					return;
 				}
 				self.getInfo(tab.url).then(function (data) {
-					self.handleDuplicates(data,tab).then(function(data) {
+					self.handleDuplicates(data, tab).then(function (data) {
 						switch (command) {
 						case 'prevBookmark':
 							if (!data || !data.prev) {
 								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 									self.getInfo(url).then(function (data) {
-										self.handleDuplicates(data,tab).then(function(data) {
+										self.handleDuplicates(data, tab).then(function (data) {
 											if (!data) {
 												self.api.notify('Page not bookmarked');
 												return;
@@ -335,7 +356,7 @@
 												self.api.notify('Reached the start of the bookmark folder');
 												return;
 											}
-											self.api.getSettings().then(function(settings) {
+											self.api.getSettings().then(function (settings) {
 												if (settings.skipPageNotBookmarkedOnNavigate || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 													self.api.setUrl(tab.id, data.prev.url);
 												}
@@ -351,7 +372,7 @@
 							if (!data || !data.next) {
 								self.api.getLastTabBookmarkedUrl(tab.id).then(function (url) {
 									self.getInfo(url).then(function (data) {
-										self.handleDuplicates(data,tab).then(function(data) {
+										self.handleDuplicates(data, tab).then(function (data) {
 											if (!data) {
 												self.api.notify('Page not bookmarked');
 												return;
@@ -360,7 +381,7 @@
 												self.api.notify('Reached the end of the bookmark folder');
 												return;
 											}
-											self.api.getSettings().then(function(settings) {
+											self.api.getSettings().then(function (settings) {
 												if (settings.skipPageNotBookmarkedOnNavigate || confirm('Page not bookmarked. Continue from last bookmarked page opened in this tab?')) {
 													self.api.setUrl(tab.id, data.next.url);
 												}
@@ -381,7 +402,7 @@
 								self.api.notify('Reached the end of the bookmark folder');
 								return;
 							}
-							var bm=ApiWrapper.clone(data.current);
+							var bm = ApiWrapper.clone(data.current);
 							delete bm.index;
 							self.api.createBookmarks(bm)
 							self.api.removeBookmarksById([bm.id]);
@@ -395,160 +416,165 @@
 		getInfo : function (url) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-					function walk(tree, path) {
-						var result = [];
+					self.api.getUrlComparisonSchema().then(function (schema) {
+						function walk(tree, path) {
+							var result = [];
 
-						function setResult(r, itm) {
-							result=result.concat(r);
-						}
+							function setResult(r, itm) {
+								result = result.concat(r);
+							}
 
-						if (tree.title) {
-							if (path) {
-								path += ' -> ' + tree.title;
-							} else {
-								path = tree.title;
+							if (tree.title) {
+								if (path) {
+									path += ' -> ' + tree.title;
+								} else {
+									path = tree.title;
+								}
 							}
+							var arr = tree.children || tree;
+							arr.forEach(function (itm, idx) {
+								if (itm.children) {
+									var r = walk(itm, path);
+									if (r)
+										setResult(r, itm);
+								}
+								if (!ApiWrapper.compareUrls(itm.url, url, schema).different) {
+									var prev = null;
+									for (var i = idx - 1; i >= 0; i--) {
+										if (arr[i].url) {
+											prev = arr[i];
+											break;
+										}
+									}
+									var next = null;
+									for (var i = idx + 1; i < arr.length; i++) {
+										if (arr[i].url) {
+											next = arr[i];
+											break;
+										}
+									}
+									setResult({
+										folder : tree,
+										prev : prev,
+										current : itm,
+										next : next,
+										index : idx,
+										length : arr.length,
+										path : path,
+										notifications : []
+									}, itm);
+								}
+							});
+							return result;
 						}
-						var arr = tree.children || tree;
-						arr.forEach(function (itm, idx) {
-							if (itm.children) {
-								var r = walk(itm, path);
-								if (r)
-									setResult(r, itm);
-							}
-							if (ApiWrapper.sameUrls(itm.url, url) >= 2) {
-								var prev = null;
-								for (var i = idx - 1; i >= 0; i--) {
-									if (arr[i].url) {
-										prev = arr[i];
-										break;
-									}
-								}
-								var next = null;
-								for (var i = idx + 1; i < arr.length; i++) {
-									if (arr[i].url) {
-										next = arr[i];
-										break;
-									}
-								}
-								setResult({
-									folder : tree,
-									prev : prev,
-									current : itm,
-									next : next,
-									index : idx,
-									length : arr.length,
-									path : path,
-									notifications : []
-								}, itm);
-							}
+						self.api.getTree().then(function (tree) {
+							var info = walk(tree);
+							resolve(info);
 						});
-						return result;
-					}
-					self.api.getTree().then(function (tree) {
-						var info=walk(tree);
-						resolve(info);
 					});
 				});
 			return promise;
 		},
-		preloadFrameId:'ifrPreload',
-		preloadLinkId:'lnkPreload',
-		preload: function(url) {
-			var self=this;
-			var time=BookmarkExplorer.preloadedUrls[url];
-			var now=(new Date()).getTime();
-			BookmarkExplorer.preloadedUrls[url]=now;
-			if (time&&now-time<86400000) return;
-			var fr=document.getElementById(self.preloadFrameId);
+		preloadFrameId : 'ifrPreload',
+		preloadLinkId : 'lnkPreload',
+		preload : function (url) {
+			var self = this;
+			var time = BookmarkExplorer.preloadedUrls[url];
+			var now = (new Date()).getTime();
+			BookmarkExplorer.preloadedUrls[url] = now;
+			if (time && now - time < 86400000)
+				return;
+			var fr = document.getElementById(self.preloadFrameId);
 			if (!fr) {
-				fr=document.createElement('iframe');
-				fr.id=self.preloadFrameId;
-				fr.style.display='none';
-				fr.setAttribute('sandbox','allow-same-origin'); //allow-scripts
+				fr = document.createElement('iframe');
+				fr.id = self.preloadFrameId;
+				fr.style.display = 'none';
+				fr.setAttribute('sandbox', 'allow-same-origin'); //allow-scripts
 				document.body.appendChild(fr);
 			}
-			fr.setAttribute('src',url);
-			var frl=document.getElementById(self.preloadLinkId);
+			fr.setAttribute('src', url);
+			var frl = document.getElementById(self.preloadLinkId);
 			if (!frl) {
-				frl=document.createElement('link');
-				frl.id=self.preloadLinkId;
-				frl.setAttribute('rel','prefetch');
+				frl = document.createElement('link');
+				frl.id = self.preloadLinkId;
+				frl.setAttribute('rel', 'prefetch');
 				document.body.appendChild(frl);
 			}
-			frl.setAttribute('href',url);
+			frl.setAttribute('href', url);
 		},
-		lastExploredFolderId:null,
-		handleDuplicates: function(arr,tab) {
+		lastExploredFolderId : null,
+		handleDuplicates : function (arr, tab) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 
-				if (!tab) {
-					self.api.getCurrentTab().then(function (currentTab) {
-						self.handleDuplicates(arr,currentTab).then(resolve);
-					});
-					return;
-				}
+					if (!tab) {
+						self.api.getCurrentTab().then(function (currentTab) {
+							self.handleDuplicates(arr, currentTab).then(resolve);
+						});
+						return;
+					}
 
+					function max(str, size) {
+						if (!str)
+							return '';
+						if (str.length <= size - 1)
+							return str;
+						return str.substr(0, size) + '\u2026';
+					}
 
-				function max(str, size) {
-					if (!str)
-						return '';
-					if (str.length <= size - 1)
-						return str;
-					return str.substr(0, size) + '\u2026';
-				}
-
-				switch (arr.length) {
+					switch (arr.length) {
 					case 0:
 						resolve(null);
 						break;
 					case 1:
-						var result=arr[0];
-						self.lastExploredFolderId=result.folder.id;
+						var result = arr[0];
+						self.lastExploredFolderId = result.folder.id;
 						resolve(result);
 						break;
 					default:
-						self.api.getListOfUrls(tab.id).then(function (urls) {
-							var result=[];
-							if (self.lastExploredFolderId) {
-								result=arr.filter(function(itm) {
-										return itm.folder.id==self.lastExploredFolderId;
-									});
-								if (result.length>1) {
-									arr=result;
-								}
-							}
-							if (result.length!=1) {
-								if (urls.length) {
-									for (var i=1; i<5; i++) {
-										var url=urls[urls.length-i];
-										result=arr.filter(function(itm) {
-											return (itm.prev && ApiWrapper.sameUrls(itm.prev.url,url)>=2) ||
-												(itm.next && ApiWrapper.sameUrls(itm.next.url,url)>=2);
+						self.api.getUrlComparisonSchema().then(function (schema) {
+							self.api.getListOfUrls(tab.id).then(function (urls) {
+								var result = [];
+								if (self.lastExploredFolderId) {
+									result = arr.filter(function (itm) {
+											return itm.folder.id == self.lastExploredFolderId;
 										});
-										if (result.length) break;
+									if (result.length > 1) {
+										arr = result;
 									}
 								}
-							}
-							result=result.length?result[0]:arr[0];
-							self.lastExploredFolderId=result.folder.id;
-							self.api.getSettings().then(function(settings) {
-								if (settings.showDuplicateNotifications) {
-									result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
-									for (var i=0; i<arr.length; i++) {
-										var r=arr[i];
-										//if (r==result) continue;
-										result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
+								if (result.length != 1) {
+									if (urls.length) {
+										for (var i = 1; i < 5; i++) {
+											var url = urls[urls.length - i];
+											result = arr.filter(function (itm) {
+													return (itm.prev && !ApiWrapper.compareUrls(itm.prev.url, url, schema).different) ||
+													(itm.next && !ApiWrapper.compareUrls(itm.next.url, url, schema).different);
+												});
+											if (result.length)
+												break;
+										}
 									}
 								}
-								resolve(result);
+								result = result.length ? result[0] : arr[0];
+								self.lastExploredFolderId = result.folder.id;
+								self.api.getSettings().then(function (settings) {
+									if (settings.showDuplicateNotifications) {
+										result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
+										for (var i = 0; i < arr.length; i++) {
+											var r = arr[i];
+											//if (r==result) continue;
+											result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
+										}
+									}
+									resolve(result);
+								});
 							});
 						});
 						break;
-				}
-			});
-		return promise;
+					}
+				});
+			return promise;
 		}
 	};
 

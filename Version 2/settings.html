@@ -25,6 +25,7 @@
 			<li>The Read Later functionality allows you to directly bookmark a link, without keeping its page open</li>
 			<li>The extension allows for importing/exporting of links as a simple list of URLs</li>
 			<li>The extension does not connect to outside servers, everything is stored locally (warning: uninstalling it loses the deleted bookmarks data)</li>
+			<li>You can tweak the way URLs are compared to each other in the Advanced section, for specific sites</li>
 			</ul>
 		</div>
 		<div id="divSettings">
@@ -69,11 +70,16 @@
 			</div>
 			<ul id="ulAdvSettings">
 			<li>
-			<input type="checkbox" id="chkDuplicateNotifications"/><label for="chkDuplicateNotifications">Duplicate bookmark notifications</label>
+			<input type="checkbox" id="chkDuplicateNotifications"/><label for="chkDuplicateNotifications" title="Duplicates may interfere with the extension functionality, it is better to be forewarned">Enable notifications for duplicate bookmarks</label>
 			</li><li>
-			<input type="checkbox" id="chkSkipPageNotBookmarkedOnNavigate"/><label for="chkSkipPageNotBookmarkedOnNavigate" title="Do not show page not bookmarked popup when navigating">Always navigate from last bookmarked url</label>
+			<input type="checkbox" id="chkSkipPageNotBookmarkedOnNavigate"/><label for="chkSkipPageNotBookmarkedOnNavigate" title="Do not show 'page not bookmarked' popup when navigating">Always navigate from last bookmarked url</label>
 			</li>
 			</ul>
+			<p>
+            <b>URL comparison</b><br/>
+			URL segments that are taken into consideration when looking for duplicates (format: any part of a URL followed by any combination of scheme, host, path, params and hash. lines starting with # are ignored)
+			<textarea id="txtCustomUrlComparison"></textarea><p>
+			<p><span id="txtCustomUrlComparisonInvalid">Scheme not valid!</span></p>
 		</div>
 	</div>
 	<div id="divFooter">

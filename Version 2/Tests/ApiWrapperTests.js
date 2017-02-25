@@ -1,21 +1,5 @@
 QUnit.module("ApiWrapper");
 
-QUnit.test("ApiWrapper.SameUrls", function (assert) {
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng', 'http://somethingel.se'), 0, "URLs with different domains are different.");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng', 'https://somethi.ng'), 0, "URLs with different schemas are different.");
-	assert.equal(ApiWrapper.sameUrls('http://x.somethi.ng', 'http://y.somethi.ng'), 0, "URLs with different hosts are different.");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/', 'http://somethi.ng'), 3, "URLs are equal if differring only by a final dash.");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/?x=1&y=2', 'http://somethi.ng?x=1&y=2'), 3, "URLs are equal if differring only by a final dash. (with parameters)");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/#hash', 'http://somethi.ng#hash'), 3, "URLs are equal if differring only by a final dash. (with hash)");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/?x=1&y=2#hash', 'http://somethi.ng?x=1&y=2#hash'), 3, "URLs are equal if differring only by a final dash. (with parameters and hash)");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.NG?x=1&Y=2#hAsh', 'http://somethi.ng?x=1&y=2#hash'), 3, "URLs are equal if differring only by capitalization");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng?x=1&y=2', 'http://somethi.ng?x=1&y=2#hash'), 2, "URLs are equal rank 2 when hash is missing from one");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng?x=1&y=2#another', 'http://somethi.ng?x=1&y=2#hash'), 2, "URLs are equal rank 2 when only hashes are different");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng#hash', 'http://somethi.ng?x=1&y=2#hash'), 1, "URLs are equal rank 1 when parameters are missing from one");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng#another', 'http://somethi.ng?x=1&y=2#hash'), 1, "URLs are equal rank 1 when parameters are missing from one and hashes are different");
-	assert.equal(ApiWrapper.sameUrls('http://somethi.ng/?x=1&y=2#hash', 'http://somethi.ng?x=1&y=2#'), 2, "having an empty hash doesn't break the regular expression");
-});
-
 QUnit.test("ApiWrapper init", function (assert) {
 	assert.throws(function () {
 		new ApiWrapper();
@@ -39,6 +23,42 @@ QUnit.test("ApiWrapper init", function (assert) {
 	assert.ok(typeof(chrome.updatedListener) == 'function', "ApiWrapper init binds to chrome.tabs.onUpdated with a listener function");
 	assert.ok(typeof(chrome.removedListener) == 'function', "ApiWrapper init binds to chrome.tabs.onRemoved with a listener function");
 });
+
+QUnit.test("ApiWrapper compareUrls", function (assert) {
+	var chrome = {
+		storage: {
+			local: {
+				get: function(key,callback){
+					callback({
+						settings: {
+							urlComparisonSchema:'<default> host,path'
+						}
+					});
+				}
+			}
+		}
+	};
+	var a = assert.async();
+	var api = new ApiWrapper(chrome);
+	setTimeout(function() {
+		assert.equal(api.compareUrls('http://somethi.ng', 'http://somethingel.se').different, true, "URLs with different domains are different.");
+		assert.equal(api.compareUrls('http://somethi.ng', 'https://somethi.ng').different, false, "URLs with different schemas are equal.");
+		assert.equal(api.compareUrls('http://x.somethi.ng', 'http://y.somethi.ng').different, true, "URLs with different hosts are different.");
+		assert.equal(api.compareUrls('http://somethi.ng/', 'http://somethi.ng').different, false, "URLs are equal if differring only by a final dash.");
+		assert.equal(api.compareUrls('http://somethi.ng/?x=1&y=2', 'http://somethi.ng?x=1&y=2').different, false, "URLs are equal if differring only by a final dash. (with parameters)");
+		assert.equal(api.compareUrls('http://somethi.ng/#hash', 'http://somethi.ng#hash').different, false, "URLs are equal if differring only by a final dash. (with hash)");
+		assert.equal(api.compareUrls('http://somethi.ng/?x=1&y=2#hash', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal if differring only by a final dash. (with parameters and hash)");
+		assert.equal(api.compareUrls('http://somethi.NG?x=1&Y=2#hAsh', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal if differring only by capitalization");
+		assert.equal(api.compareUrls('http://somethi.ng?x=1&y=2', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal rank 2 when hash is missing from one");
+		assert.equal(api.compareUrls('http://somethi.ng?x=1&y=2#another', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal rank 2 when only hashes are different");
+		assert.equal(api.compareUrls('http://somethi.ng#hash', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal rank 1 when parameters are missing from one");
+		assert.equal(api.compareUrls('http://somethi.ng#another', 'http://somethi.ng?x=1&y=2#hash').different, false, "URLs are equal rank 1 when parameters are missing from one and hashes are different");
+		assert.equal(api.compareUrls('http://somethi.ng/?x=1&y=2#hash', 'http://somethi.ng?x=1&y=2#').different, false, "having an empty hash doesn't break the regular expression");
+		a();
+	});
+});
+
+
 
 QUnit.test("ApiWrapper getCurrentTab", function (assert) {
 	var chrome = {

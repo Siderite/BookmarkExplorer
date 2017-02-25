@@ -10,3 +10,11 @@
 #divSettings, #divInfo, #divAdvSettings {
 	min-height:350px;
 }
+#txtCustomUrlComparison {
+	width:300px;
+	height:190px;
+}
+#txtCustomUrlComparisonInvalid {
+	color:red;
+	display:none;
+}
