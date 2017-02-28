@@ -22,8 +22,7 @@
 						self.getInfo(tab.url).then(function (data) {
 							self.handleDuplicates(data, tab).then(function (data) {
 								if (data && data.current && tab.url == data.current.url) {
-									var notify = self.api.notify.bind(self.api);
-									data.notifications.forEach(notify);
+									self.api.notify(data.notifications);
 								}
 							});
 						});
@@ -95,7 +94,6 @@
 					self.execute.apply(self, arguments);
 				});
 			}
-
 			if (!noInitialRefresh) {
 				refresh();
 			}
@@ -413,6 +411,44 @@
 				});
 			});
 		},
+		inviteToBlogIntervalInDays:100,
+		inviteToBlog : function() {
+			var self = this;
+			self.api.getSettings().then(function(settings) {
+				if (settings.showBlogInvitation) {
+					var now=+(new Date());
+					if (!settings.lastShownBlogInvitation||now-settings.lastShownBlogInvitation>self.inviteToBlogIntervalInDays*86400000) {
+						settings.lastShownBlogInvitation=now;
+						self.api.setSettings(settings).then(function() {
+							self.api.notify({
+								title : "Visit Siderite's Blog",
+								message : "Click on the link below to ask for features, report bugs or discuss the extension",
+								buttons : [
+									{
+										title : 'https://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html',
+										clicked : function () {
+											self.api.selectOrNew(this.title);
+										}
+									},
+									{
+										title : 'Never show this again',
+										clicked : function() {
+											self.api.getSettings().then(function(settings) {
+												settings.showBlogInvitation=false;
+												self.api.setSettings(settings).then(function() {
+													self.api.notify('Find the link in the extension options');
+												});
+											});
+										}
+									}
+								],
+								requireInteraction : true
+							});
+						});
+					}
+				}
+			});
+		},
 		getInfo : function (url) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
@@ -473,6 +509,7 @@
 						});
 					});
 				});
+			self.inviteToBlog();
 			return promise;
 		},
 		preloadFrameId : 'ifrPreload',
@@ -498,6 +535,7 @@
 				frl = document.createElement('link');
 				frl.id = self.preloadLinkId;
 				frl.setAttribute('rel', 'prefetch');
+				frl.setAttribute('as', 'document');
 				document.body.appendChild(frl);
 			}
 			frl.setAttribute('href', url);
@@ -560,12 +598,12 @@
 								self.lastExploredFolderId = result.folder.id;
 								self.api.getSettings().then(function (settings) {
 									if (settings.showDuplicateNotifications) {
-										result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
+										result.notifications.push('Duplicate bookmarks found:');
 										for (var i = 0; i < arr.length; i++) {
 											var r = arr[i];
-											//if (r==result) continue;
-											result.notifications.push('"' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ') is a duplicate!');
+											result.notifications.push('- "' + max(r.current.title, 50) + '" in "' + max(r.folder.title, 20) + '" (' + max(r.current.url, 50) + ')');
 										}
+										result.notifications.push('Using the one in "' + max(result.folder.title, 20) + '"@' + (result.index + 1));
 									}
 									resolve(result);
 								});

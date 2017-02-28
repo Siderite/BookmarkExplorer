@@ -57,4 +57,5 @@
 *- only show duplicate button when there are duplicates / use a warning color
 #- bug: if you change the key bindings, the title of the menu item doesn't reflect it
 *- icon for the menu items
-- periodically notify users about leaving feedback about the explorer on the blog page
+*- periodically notify users about leaving feedback about the explorer on the blog page
+*- revamp notifications

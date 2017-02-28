@@ -157,6 +157,7 @@
 		init : function () {
 			var self = this;
 			self.handlers = [];
+			self.notifications = {};
 			if (self.chr && self.chr.tabs && self.chr.tabs.onUpdated) {
 				self.onUpdatedTab(function (tabId, changeInfo, tab) {
 					if (changeInfo && changeInfo.status == 'complete') {
@@ -173,6 +174,17 @@
 				self.onActivatedTab(function (data) {
 					if (data.tabId)
 						self.lastActivatedTabId = data.tabId;
+				});
+			}
+			if (self.chr && self.chr.notifications && self.chr.notifications.onButtonClicked) {
+				self.chr.notifications.onButtonClicked.addListener(function(notifId, btnIdx) {
+					var options=self.notifications[notifId];
+					if (options&&options.buttons) {
+						var btn=options.buttons[btnIdx];
+						if (btn && btn.clicked) {
+							btn.clicked();
+						}
+					}
 				});
 			}
 		},
@@ -258,15 +270,37 @@
 				});
 			return promise;
 		},
-		notify : function (text) {
+		notify : function (options) {
+			if (!options) return;
+			if (typeof(options)=="string") {
+				options={ message : options };
+			}
+            if (Array.isArray(options)) {
+				if (!options.length) return;
+				options={ items : options };
+			}
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
-					self.chr.notifications.create(null, {
+					var notifOpts={
 						type : "basic",
-						title : "Siderite's Bookmark Explorer",
-						message : (text || ''),
-						iconUrl : "bigIcon.png"
-					}, resolve);
+						title : (options.title||"Siderite's Bookmark Explorer"),
+						message : (options.message || ''),
+						iconUrl : "bigIcon.png",
+						requireInteraction : !!options.requireInteraction
+					};
+					if (options.items&&options.items.length) {
+						notifOpts.type = "list";
+						notifOpts.items = options.items.map(function(text) { return {title:'',message:text}; });
+					}
+					if (options.buttons&&options.buttons.length) {
+						notifOpts.buttons = options.buttons.map(function(btn) { return {title:btn.title,iconUrl:btn.iconUrl}; });
+					}
+					self.chr.notifications.create(null, notifOpts, function(notificationId) {
+						if (options.buttons&&options.buttons.length) {
+							self.notifications[notificationId]=options;
+						}
+						resolve(notificationId);
+					});
 				});
 			return promise;
 		},
@@ -324,7 +358,9 @@
 				skipPageNotBookmarkedOnNavigate : typeof(settings.skipPageNotBookmarkedOnNavigate) == 'undefined' ? false : !!settings.skipPageNotBookmarkedOnNavigate,
 				urlComparisonSchema : ApiWrapper.isValidUrlComparisonSchema(settings.urlComparisonSchema)
 				 ? settings.urlComparisonSchema
-				 : ApiWrapper.urlComparisonDefault + ' host, path\r\n#examples:\r\n#www.somedomain.com scheme, host, path, params, hash\r\n#/documents path, hash'
+				 : ApiWrapper.urlComparisonDefault + ' host, path\r\n#examples:\r\n#www.somedomain.com scheme, host, path, params, hash\r\n#/documents path, hash',
+				showBlogInvitation : typeof(settings.showBlogInvitation) == 'undefined' ? true : !!settings.showBlogInvitation,
+				lastShownBlogInvitation : settings.lastShownBlogInvitation
 			};
 			return data;
 		},
