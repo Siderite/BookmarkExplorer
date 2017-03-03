@@ -144,6 +144,13 @@
 		};
 	};
 
+	ApiWrapper.cleanUrl=function(url) {
+		if (!url) return url;
+		var uri=new URL(url);
+		uri.search = uri.search.replace(/utm_[^&]+&?/g, '').replace(/(wkey|wemail)[^&]+&?/g, '').replace(/(_hsenc|_hsmi|hsCtaTracking)[^&]+&?/g, '').replace(/&$/, '').replace(/^\?$/, '');
+		return uri.toString();
+	};
+
 	ApiWrapper.prototype = {
 		log : function () {
 			if (this.debug && arguments.length) {
@@ -360,7 +367,8 @@
 				 ? settings.urlComparisonSchema
 				 : ApiWrapper.urlComparisonDefault + ' host, path\r\n#examples:\r\n#www.somedomain.com scheme, host, path, params, hash\r\n#/documents path, hash',
 				showBlogInvitation : typeof(settings.showBlogInvitation) == 'undefined' ? true : !!settings.showBlogInvitation,
-				lastShownBlogInvitation : settings.lastShownBlogInvitation
+				lastShownBlogInvitation : settings.lastShownBlogInvitation,
+				cleanUrls : typeof(settings.cleanUrls) == 'undefined' ? false : !!settings.cleanUrls
 			};
 			return data;
 		},
@@ -634,6 +642,13 @@
 						});
 					});
 				});
+			return promise;
+		},
+		updateBookmark : function (id, changes) {
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+				self.chr.bookmarks.update(id, changes, resolve);
+			});
 			return promise;
 		},
 		deletedBookmarksKey : 'lastDeletedBookmarks',

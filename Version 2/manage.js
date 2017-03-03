@@ -25,6 +25,8 @@
 			var tree = $('#divTree', context);
 			var menu = $('#ulMenu', context);
 			var liRemoveBookmarks = $('li[data-command=delete]', menu);
+			var liMoveToEndBookmarks = $('li[data-command=moveToEnd]', menu);
+			var liMoveToStartBookmarks = $('li[data-command=moveToStart]', menu);
 			var liManageDeleted = $('li[data-command=restore]', menu);
 			var copyPaste = $('#divCopyPaste', context);
 			var divFilter = $('#divFilter', context);
@@ -147,7 +149,7 @@
 					var chk = $('<input />')
 						.attr('type', 'checkbox')
 						.val(itm.id)
-						.attr('title', 'Mark for delete')
+						.attr('title', 'Mark for delete/move etc.')
 						.click(function () {
 							$('div.current', tree).removeClass('current');
 							$(this).parents('div:first').addClass('current');
@@ -196,6 +198,8 @@
 					var ul = tree.find('>ul');
 					var checkedInputs = ul.find('input:nothidden:checked');
 					liRemoveBookmarks.toggle(!!checkedInputs.length);
+					liMoveToEndBookmarks.toggle(!!checkedInputs.length);
+					liMoveToStartBookmarks.toggle(!!checkedInputs.length);
 
 					api.getDeletedBookmarks().then(function (bookmarks) {
 						liManageDeleted.toggle(!!(bookmarks && bookmarks.length));
@@ -307,6 +311,12 @@
 				case 'settings':
 					app.openSettings();
 					break;
+				case 'moveToEnd':
+					moveToEnd();
+					break;
+				case 'moveToStart':
+					moveToStart();
+					break;
 				}
 			}
 
@@ -314,13 +324,15 @@
 			imgToggleBefore.click(toggleBefore);
 			imgSelectDuplicates.click(selectDuplicates);
 
-			function toggleAll() {
+			function toggleAll(val) {
 				var ul = tree.find('>ul');
-				var val = 0;
-				ul.find('>li>div:nothidden>input').each(function () {
-					val += ($(this).is(':checked') ? 1 : -1);
-				});
-				val = val < 0;
+				if (typeof(value)=='undefined') {
+					val = 0;
+					ul.find('>li>div:nothidden>input').each(function () {
+						val += ($(this).is(':checked') ? 1 : -1);
+					});
+					val = val < 0;
+				}
 				ul.find('>li>div:nothidden>input').prop('checked', val);
 				refreshMenuOptions();
 			}
@@ -406,6 +418,67 @@
 							api.addDeletedBookmarks(bookmarks).then(f);
 						}
 					});
+				});
+			}
+
+			function moveToEnd() {
+				var ul = tree.find('>ul');
+				var inputs = ul.find('input:nothidden:checked');
+				if (!inputs.length)
+					return;
+				if (!confirm('Are you sure you want to move to end ' + inputs.length + ' bookmarks?'))
+					return;
+				var ids = []
+				inputs.each(function () {
+					var id = $(this).val();
+					if (id) {
+						ids.push({
+							id : id,
+							input : this
+						});
+					}
+				});
+				api.getBookmarksByIds(ids.map(function (p) {
+						return p.id;
+					})).then(function (bookmarks) {
+						bookmarks.forEach(function(bm) {
+							bm = ApiWrapper.clone(bm);
+							delete bm.index;
+							api.createBookmarks(bm)
+							api.removeBookmarksById([bm.id]);
+						});
+						refreshFromCurrent();
+				});
+			}
+
+			function moveToStart() {
+				var ul = tree.find('>ul');
+				var inputs = ul.find('input:nothidden:checked');
+				if (!inputs.length)
+					return;
+				if (!confirm('Are you sure you want to move to start ' + inputs.length + ' bookmarks?'))
+					return;
+				var ids = []
+				inputs.each(function () {
+					var id = $(this).val();
+					if (id) {
+						ids.push({
+							id : id,
+							input : this
+						});
+					}
+				});
+				api.getBookmarksByIds(ids.map(function (p) {
+						return p.id;
+					})).then(function (bookmarks) {
+						bookmarks.reverse();
+						bookmarks.forEach(function(bm) {
+							bm = ApiWrapper.clone(bm);
+							bm.index=0;
+							api.createBookmarks(bm)
+							api.removeBookmarksById([bm.id]);
+						});
+						refreshFromCurrent();
 				});
 			}
 

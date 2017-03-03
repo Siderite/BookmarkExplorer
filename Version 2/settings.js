@@ -27,6 +27,7 @@
 		var chkSkipPageNotBookmarkedOnNavigate = $('#chkSkipPageNotBookmarkedOnNavigate', context);
 		var txtCustomUrlComparison = $('#txtCustomUrlComparison', context);
 		var txtCustomUrlComparisonInvalid = $('#txtCustomUrlComparisonInvalid', context);
+		var chkCleanUrls = $('#chkCleanUrls', context);
 
 		api.getSettings().then(function (settings) {
 			chkPrevNextContext
@@ -83,6 +84,12 @@
 			.prop('checked', settings.skipPageNotBookmarkedOnNavigate)
 			.click(function () {
 				settings.skipPageNotBookmarkedOnNavigate = $(this).prop('checked');
+				api.setSettings(settings);
+			});
+			chkCleanUrls
+			.prop('checked', settings.cleanUrls)
+			.click(function () {
+				settings.cleanUrls = $(this).prop('checked');
 				api.setSettings(settings);
 			});
 

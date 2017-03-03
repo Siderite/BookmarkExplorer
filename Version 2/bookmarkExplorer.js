@@ -41,7 +41,18 @@
 			}
 
 			if (self.api.onCreatedBookmark) {
-				self.api.onCreatedBookmark(refresh);
+				self.api.onCreatedBookmark(function(id, bm) {
+					self.api.getSettings().then(function(settings) {
+						if (bm.url&&settings.cleanUrls) {
+							var newUrl=ApiWrapper.cleanUrl(bm.url);
+							if (newUrl!=bm.url) {
+								self.api.updateBookmark(id, { url:newUrl }).then(refresh);
+							}
+						} else {
+							refresh();
+						}
+					});
+				});
 			}
 			if (self.api.onRemovedBookmark) {
 				var bookmarksToStore = [];
@@ -417,10 +428,11 @@
 			self.api.getSettings().then(function(settings) {
 				if (settings.showBlogInvitation) {
 					var now=+(new Date());
+					var firstTime=!settings.lastShownBlogInvitation;
 					if (!settings.lastShownBlogInvitation||now-settings.lastShownBlogInvitation>self.inviteToBlogIntervalInDays*86400000) {
 						settings.lastShownBlogInvitation=now;
 						self.api.setSettings(settings).then(function() {
-							self.api.notify({
+							var notification={
 								title : "Visit Siderite's Blog",
 								message : "Click on the link below to ask for features, report bugs or discuss the extension",
 								buttons : [
@@ -443,7 +455,11 @@
 									}
 								],
 								requireInteraction : true
-							});
+							};
+							if (firstTime) {
+								notification.buttons.splice(1,1);
+							}
+							self.api.notify(notification);
 						});
 					}
 				}
