@@ -445,10 +445,11 @@
 									{
 										title : 'Never show this again',
 										clicked : function() {
+											self.api.closeNotification(notification.notificationId);
 											self.api.getSettings().then(function(settings) {
 												settings.showBlogInvitation=false;
 												self.api.setSettings(settings).then(function() {
-													self.api.notify('Find the link in the extension options');
+													self.api.notify('Find the blog entry link in the extension Options');
 												});
 											});
 										}

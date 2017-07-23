@@ -82,8 +82,10 @@
 		});
 		return valid && hasDefault;
 	};
+    ApiWrapper._comparisonOptions={};
 	ApiWrapper.getComparisonOptions = function (url, schema) {
-		var o = null;
+		var o = ApiWrapper._comparisonOptions[url];
+		if (o) return o;
 		var def = null;
 		Object.keys(schema).forEach(function (fragment) {
 			if (fragment == ApiWrapper.urlComparisonDefault)
@@ -93,7 +95,9 @@
 		});
 		if (!def)
 			self.log('urlComparisonSchema default not set!');
-		return o || def;
+		o = o || def;
+		ApiWrapper._comparisonOptions[url]=o;
+		return o;
 	};
 	var regUrl = /^\s*(?:([^:]+):(?:\/\/)?)?([^\/\?#]*)[\/]?([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
 	ApiWrapper.compareUrls = function (u1, u2, schema, extraOptions) {
@@ -118,7 +122,7 @@
 
 		var result = 0;
 		var different = false;
-		if (m1[1] || 'http' != m2[1] || 'http') {
+		if ((m1[1] || 'http') != (m2[1] || 'http')) {
 			result += 20;
 			different = different || options.scheme;
 		}
@@ -306,9 +310,18 @@
 						if (options.buttons&&options.buttons.length) {
 							self.notifications[notificationId]=options;
 						}
+						options.notificationId = notificationId;
 						resolve(notificationId);
 					});
 				});
+			return promise;
+		},
+		closeNotification : function(id) {
+			if (!id) return;
+			var self = this;
+			var promise = new Promise(function (resolve, reject) {
+				self.chr.notifications.clear(id,resolve);
+			});
 			return promise;
 		},
 		getDataSize : function (key) {
@@ -382,6 +395,7 @@
 			});
 		},
 		setSettings : function (settings) {
+			ApiWrapper._comparisonOptions={};
 			var self = this;
 			return new Promise(function (resolve, reject) {
 				var data = self.expandSettings(settings);

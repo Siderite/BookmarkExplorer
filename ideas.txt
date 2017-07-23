@@ -38,6 +38,7 @@
 *- periodically notify users about leaving feedback about the explorer on the blog page
 *- revamp notifications
 *- add move bookmark to start/end in manage
+*- bug: close notification when choosing to never show it again
 
 #- store parent name when deleting bookmarks
 #- select a piece of a page and bookmark it somehow, perhaps personal notes as well
@@ -61,3 +62,8 @@
 - bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
 - bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow? Or is it linked to pages with no favico?
 - check the extension looks good on all browser themes (use relative colors)
+
+Ideas for speed improvements:
+- compareUrls
+#	- different method (either simpler Regex or another algorithm)
+*	- getComparisonOptions is slowing it down (cache for urls, on setSettings clear cache)
