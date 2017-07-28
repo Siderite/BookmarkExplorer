@@ -54,7 +54,7 @@
 					return index;
 				}
 			}).on('filter', function () {
-				refreshMenuOptions();
+				refreshMenuOptions(true);
 			});
 
 			api.onMessage(function (data) {
@@ -112,7 +112,9 @@
 				header.text(data.folder.title);
 				subheader.empty();
 				createTree(data.folder, checkData);
-				tree.find('input[type=checkbox]').click(refreshMenuOptions);
+				tree.find('input[type=checkbox]').click(function() {
+					refreshMenuOptions(true);
+				});
 				api.getUrlComparisonSchema().then(function (schema) {
 					tree.find('a').each(function () {
 						if (ApiWrapper.compareUrls($(this).attr('href'), data.current.url, schema).different)
@@ -184,11 +186,11 @@
 				return false;
 			}
 
-			function refreshMenuOptions() {
+			function refreshMenuOptions(ignoreDuplicates) {
 				api.getUrlComparisonSchema().then(function (schema) {
 					var hasData = !!(currentData && currentData.folder);
 					var hasDuplicates = false;
-					if (hasData) {
+					if (!ignoreDuplicates && hasData) {
 						hasDuplicates = anyDuplicates(currentData.folder.children, schema);
 					}
 					imgToggleAll.toggle(hasData);
@@ -290,7 +292,7 @@
 
 			menu.contextMenu({
 				anchor : imgMenu,
-				onOpen : refreshMenuOptions,
+				onOpen : function() { refreshMenuOptions(true); },
 				executeCommand : executeMenuCommand
 			});
 
@@ -334,7 +336,7 @@
 					val = val < 0;
 				}
 				ul.find('>li>div:nothidden>input').prop('checked', val);
-				refreshMenuOptions();
+				refreshMenuOptions(true);
 			}
 
 			function toggleBefore() {
@@ -351,7 +353,7 @@
 				});
 				val = val < 0;
 				chks.prop('checked', val);
-				refreshMenuOptions();
+				refreshMenuOptions(true);
 			}
 
 			function selectDuplicates() {
@@ -372,7 +374,7 @@
 						chk.prop('checked', checked);
 						urls.push(url);
 					});
-					refreshMenuOptions();
+					refreshMenuOptions(true);
 				});
 			}
 
