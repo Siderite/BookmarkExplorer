@@ -171,7 +171,7 @@
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html'), self.api.getExtensionUrl('settings.html'), self.api.getOptionsUrl()];
-			if (ownUrls.includes(currentTab.url) || currentTab.url.startsWith('chrome:') || currentTab.url.startsWith('moz-extension:')) {
+			if (ownUrls.includes(currentTab.url) || currentTab.url.startsWith('chrome:') || currentTab.url.startsWith('moz-extension:') || currentTab.url.startsWith('opera:')) {
 				if (forced || currentTab.url != manageUrl) {
 					self.api.sendMessage("current");
 				}

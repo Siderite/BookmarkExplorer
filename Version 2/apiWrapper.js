@@ -170,11 +170,11 @@
 		};
 
 		var ag=navigator.userAgent;
-		if((ag.indexOf("Opera") || ag.indexOf('OPR')) != -1 ) 
+		if (ag.indexOf("Opera") || ag.indexOf('OPR') != -1 ) 
     	{
         	browser.isOpera=true;
     	}
-    	else if(ag.indexOf("Chrome") != -1 )
+    	else if (ag.indexOf("Chrome") != -1 )
     	{
         	browser.isChrome=true;
     	}
@@ -237,7 +237,7 @@
 				});
 			}
 			var browser=ApiWrapper.getBrowser();
-			if (!browser.isFirefox) {
+			if (!browser.isFirefox&&!browser.isOpera) {
 				if (self.chr && self.chr.notifications && self.chr.notifications.onButtonClicked) {
 					self.chr.notifications.onButtonClicked.addListener(function(notifId, btnIdx) {
 						var options=self.notifications[notifId];
@@ -359,8 +359,8 @@
 						notifOpts.items = options.items.map(function(text) { return {title:'',message:text}; });
 					}
 					if (options.buttons&&options.buttons.length) {
-						if (browser.isFirefox) {
-							throw "Notification buttons in Firefox do not work.";
+						if (browser.isFirefox||browser.isOpera) {
+							self.log("Notification buttons in Firefox and Opera do not work.");
 						} else {
 							notifOpts.buttons = options.buttons.map(function(btn) { return {title:btn.title,iconUrl:btn.iconUrl}; });
 						}
@@ -532,6 +532,9 @@
 					var browser=ApiWrapper.getBrowser();
 					if (browser.isFirefox) {
 						url=url.replace(/^moz-extension/,'*');
+					}
+					if (browser.isOpera) {
+						url=url.replace(/^opera/,'*');
 					}
 					self.chr.tabs.query({
 						url : url + '*'

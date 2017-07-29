@@ -187,6 +187,9 @@
 			if (browser.isFirefox) {
 				divShortcutsFirefox.show();
 			}
+			if (browser.isOpera) {
+				api.selectOrNew('opera://settings/configureCommands');
+			}
 		});
 
 		$('#divTabs').tabs({
