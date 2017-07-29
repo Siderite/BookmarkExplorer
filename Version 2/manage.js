@@ -59,7 +59,7 @@
 
 			api.onMessage(function (data) {
 				if (data == 'current') {
-					//refreshFromCurrent();
+					refreshFromCurrent();
 					return;
 				}
 				if (!chkHoldFolder.is(':checked')) {
@@ -90,6 +90,7 @@
 				if (sdata == last)
 					return;
 				last = sdata;
+				currentData = data;
 				$(context).trigger('refresh');
 				var checkData = {};
 				tree.find('input[type=checkbox]').each(function () {
@@ -99,7 +100,6 @@
 						checkData[id] = checked;
 					}
 				});
-				currentData = data;
 				divFilter.hide();
 				tree.empty();
 				if (!data || !data.folder) {
@@ -144,7 +144,7 @@
 				if (itm.url) {
 					$('<a></a>')
 					.text(itm.title || itm.url)
-					.prepend($('<img/>').attr('src', ApiWrapper.getIconForUrl(itm.url)))
+					.prepend($('<img/>').addClass('favicon').hideOnError().attr('src', ApiWrapper.getIconForUrl(itm.url)))
 					.attr('href', itm.url || '#')
 					.attr('target', '_blank')
 					.appendTo(elem);
@@ -222,12 +222,13 @@
 
 			function copyURLsToClipboard() {
 				var list = [];
-				tree.find('>ul a[href]:nothidden').each(function () {
-					var href = $(this).attr('href');
-					list.push(href);
-				});
+				tree.find('>ul input:nothidden:checked').closest('li').find('a[href]:nothidden')
+					.each(function () {
+						var href = $(this).attr('href');
+						list.push(href);
+					});
 				if (!list.length) {
-					api.notify('Nothing to copy!');
+					api.notify('No items checked!');
 					return;
 				}
 				var data = list.join('\r\n');
@@ -286,9 +287,16 @@
 				}, 1);
 			}
 
-			copyPaste.find('#btnClose').click(function () {
-				copyPaste.hide();
-			});
+			copyPaste
+				.find('#btnClose').click(function () {
+					copyPaste.hide();
+				});
+			copyPaste
+				.on('keyup',function(ev) {
+					if (ev.which == 27) {
+						copyPaste.hide();
+					}
+				});
 
 			menu.contextMenu({
 				anchor : imgMenu,

@@ -287,4 +287,17 @@
 		}
 	});
 
+	$.fn.hideOnError = function (options) {
+		var target = $(this);
+		if (!target.is('img')) return this;
+		options = options || {};
+
+		target.on('error',function() {
+			$(this).hide();
+		});
+
+		return this;
+	}
+
+
 })(jQuery);

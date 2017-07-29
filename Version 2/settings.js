@@ -10,6 +10,8 @@
 	$(function () {
 		var aShortcuts = $('#aShortcuts', context);
 		var divShortcuts = $('#divShortcuts', context);
+		var divShortcutsChrome = $('#divShortcutsChrome', context);
+		var divShortcutsFirefox = $('#divShortcutsFirefox', context);
 		var chkPrevNextContext = $('#chkPrevNextContext', context);
 		var chkSkipButton = $('#chkSkipButton', context);
 		var chkManageContext = $('#chkManageContext', context);
@@ -178,6 +180,13 @@
 		aShortcuts.click(function (ev) {
 			ev.preventDefault();
 			divShortcuts.show();
+			var browser=ApiWrapper.getBrowser();
+			if (browser.isChrome) {
+				divShortcutsChrome.show();
+			}
+			if (browser.isFirefox) {
+				divShortcutsFirefox.show();
+			}
 		});
 
 		$('#divTabs').tabs({

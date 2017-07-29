@@ -161,3 +161,7 @@ span>img {
 	margin-left:3px;
 	cursor:pointer;
 }
+.favicon {
+	height:16px;
+	width:16px;
+}

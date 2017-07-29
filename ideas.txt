@@ -62,8 +62,24 @@
 - bug: next bookmark takes the last bookmark in list (if there are duplicates), instead of the first - this leads to maybe deleting a lot of unread items if not careful
 - bug: sometimes tabs fail to autoclose. Is it because I closed the window that started the process? Does it mean BE needs to stay MORE in the background somehow? Or is it linked to pages with no favico?
 - check the extension looks good on all browser themes (use relative colors)
+*- bug: get bookmarks URLs gives all URLs, not just the selected ones
+*- bug: copy/paste modal doesn't close with Esc
+*- bug: on Firefox, opening Manage/Settings doesn't close the popup
 
 Ideas for speed improvements:
 - compareUrls
 #	- different method (either simpler Regex or another algorithm)
 *	- getComparisonOptions is slowing it down (cache for urls, on setSettings clear cache)
+
+Firefox:
+*- keyboard shortcuts
+	*- the text should be changed
+*- getIconForUrl
+*- getOptionsUrl
+*- getExtensionUrl
+*- notifications 
+*	- options requireInteraction only in Chrome
+*	- buttons only in Chrome
+*- tabs
+*	- query doesn't support internal extension URLs.
+*- look for "chrome:"

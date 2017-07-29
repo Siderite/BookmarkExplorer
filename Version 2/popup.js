@@ -29,9 +29,11 @@
 			});
 			btnManage.click(function () {
 				app.execute('manage');
+				window.close();
 			});
 			btnSettings.click(function () {
 				app.execute('settings');
+				window.close();
 			});
 
 			function refresh() {
@@ -52,7 +54,7 @@
 							if (data && data.prev) {
 								btnPrev.prop('disabled', false);
 								btnPrev.data('url', data.prev.url);
-								btnPrev.attr('title', (data.prev.title || '') + '\r\n' + data.prev.url + '\r\n(Ctrl-Shift-K)');
+								btnPrev.attr('title', (data.prev.title || '') + '\r\n' + data.prev.url + '\r\n(Ctrl-Shift-O)');
 							} else {
 								btnPrev.prop('disabled', true);
 								btnPrev.removeData('url')

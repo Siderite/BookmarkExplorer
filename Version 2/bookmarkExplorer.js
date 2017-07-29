@@ -31,13 +31,19 @@
 			}
 
 			if (self.api.onCreatedTab) {
-				self.api.onCreatedTab(refresh);
+				self.api.onCreatedTab(function() {
+					refresh();
+				});
 			}
 			if (self.api.onRemovedTab) {
-				self.api.onRemovedTab(refresh);
+				self.api.onRemovedTab(function() {
+					refresh();
+				});
 			}
 			if (self.api.onActivatedTab) {
-				self.api.onActivatedTab(refresh);
+				self.api.onActivatedTab(function() {
+					refresh();
+				});
 			}
 
 			if (self.api.onCreatedBookmark) {
@@ -46,10 +52,12 @@
 						if (bm.url&&settings.cleanUrls) {
 							var newUrl=ApiWrapper.cleanUrl(bm.url);
 							if (newUrl!=bm.url) {
-								self.api.updateBookmark(id, { url:newUrl }).then(refresh);
+								self.api.updateBookmark(id, { url:newUrl }).then(function() {
+									refresh(true);
+								});
 							}
 						} else {
-							refresh();
+							refresh(true);
 						}
 					});
 				});
@@ -59,7 +67,7 @@
 				var removeBookmarksThrottled = ApiWrapper.throttle(function () {
 						self.api.addDeletedBookmarks(bookmarksToStore).then(function () {
 							bookmarksToStore.splice(0, 10000);
-							refresh();
+							refresh(true);
 						});
 					});
 				self.api.onRemovedBookmark(function (id, data) {
@@ -82,22 +90,30 @@
 								removeBookmarksThrottled();
 							}
 						} else {
-							refresh();
+							refresh(true);
 						}
 					});
 				});
 			}
 			if (self.api.onChangedBookmark) {
-				self.api.onChangedBookmark(refresh);
+				self.api.onChangedBookmark(function() {
+					refresh(true);
+				});
 			}
 			if (self.api.onMovedBookmark) {
-				self.api.onMovedBookmark(refresh);
+				self.api.onMovedBookmark(function() {
+					refresh(true);
+				});
 			}
 			if (self.api.onChildrenReorderedBookmark) {
-				self.api.onChildrenReorderedBookmark(refresh);
+				self.api.onChildrenReorderedBookmark(function() {
+					refresh(true);
+				});
 			}
 			if (self.api.onImportEndedBookmark) {
-				self.api.onImportEndedBookmark(refresh);
+				self.api.onImportEndedBookmark(function() {
+					refresh(true);
+				});
 			}
 
 			if (self.api.onCommand) {
@@ -120,9 +136,14 @@
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			self.getInfo(url).then(function (data) {
 				self.api.getCurrentTab().then(function (currentTab) {
-					self.api.selectOrNew(manageUrl).then(function (tab) {
+					/*self.api.selectOrNew(manageUrl).then(function() {
 						self.handleDuplicates(data, currentTab).then(function (data) {
-							self.api.sendMessage(tab.id, data);
+							self.api.sendMessage(data);
+						});
+					});*/
+					self.handleDuplicates(data, currentTab).then(function (data) {
+						self.api.selectOrNew(manageUrl).then(function() {
+							self.api.sendMessage(data);
 						});
 					});
 				});
@@ -137,31 +158,28 @@
 			var deletedUrl = self.api.getExtensionUrl('deleted.html');
 			self.api.selectOrNew(deletedUrl);
 		},
-		refresh : function () {
+		refresh : function (forced) {
 			var self = this;
 			self.api.getCurrentTab().then(function (tab) {
 				if (tab.url) {
 					self.refreshIconAndMenu(tab);
-					self.refreshManage(tab);
+					self.refreshManage(tab, forced);
 				}
 			});
 		},
-		refreshManage : function (currentTab) {
+		refreshManage : function (currentTab, forced) {
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
 			var ownUrls = [manageUrl, self.api.getExtensionUrl('deleted.html'), self.api.getExtensionUrl('settings.html'), self.api.getOptionsUrl()];
-			self.api.getTabsByUrl(manageUrl).then(function (tabs) {
-				var tab = tabs[0];
-				if (!tab)
-					return;
-				if (ownUrls.includes(currentTab.url) || currentTab.url.startsWith('chrome:')) {
-					self.api.sendMessage(tab.id, "current");
-					return;
+			if (ownUrls.includes(currentTab.url) || currentTab.url.startsWith('chrome:') || currentTab.url.startsWith('moz-extension:')) {
+				if (forced || currentTab.url != manageUrl) {
+					self.api.sendMessage("current");
 				}
-				self.getInfo(currentTab.url).then(function (data) {
-					self.handleDuplicates(data, currentTab).then(function (data) {
-						self.api.sendMessage(tab.id, data);
-					});
+				return;
+			}
+			self.getInfo(currentTab.url).then(function (data) {
+				self.handleDuplicates(data, currentTab).then(function (data) {
+					self.api.sendMessage(data);
 				});
 			});
 		},
@@ -178,7 +196,7 @@
 						}
 						self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
 						if (data && data.prev && settings.prevNextContext) {
-							self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-K)');
+							self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-O)');
 						} else {
 							self.api.removeMenuItem('prevBookmark');
 						}
@@ -427,38 +445,55 @@
 			var self = this;
 			self.api.getSettings().then(function(settings) {
 				if (settings.showBlogInvitation) {
+					var browser=ApiWrapper.getBrowser();
 					var now=+(new Date());
 					var firstTime=!settings.lastShownBlogInvitation;
 					if (!settings.lastShownBlogInvitation||now-settings.lastShownBlogInvitation>self.inviteToBlogIntervalInDays*86400000) {
 						settings.lastShownBlogInvitation=now;
 						self.api.setSettings(settings).then(function() {
-							var notification={
-								title : "Visit Siderite's Blog",
-								message : "Click on the link below to ask for features, report bugs or discuss the extension",
-								buttons : [
-									{
-										title : 'https://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html',
-										clicked : function () {
-											self.api.selectOrNew(this.title);
-										}
-									},
-									{
-										title : 'Never show this again',
-										clicked : function() {
-											self.api.closeNotification(notification.notificationId);
-											self.api.getSettings().then(function(settings) {
-												settings.showBlogInvitation=false;
-												self.api.setSettings(settings).then(function() {
-													self.api.notify('Find the blog entry link in the extension Options');
+							var notification;
+							if (browser.isFirefox) {
+								notification={
+									title : "Visit Siderite's Blog",
+									message : "Use this link to ask for features, report bugs or discuss the extension:\r\nhttps://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html",
+								};
+								settings.showBlogInvitation=false;
+								if (!firstTime) {
+									self.api.setSettings(settings).then(function() {
+										setTimeout(function() {
+											self.api.notify('Find the blog entry link in the extension Options');
+										},10000);
+									});
+								}
+							} else {
+								notification={
+									title : "Visit Siderite's Blog",
+									message : "Click on the link below to ask for features, report bugs or discuss the extension",
+									buttons : [
+										{
+											title : 'https://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html',
+											clicked : function () {
+												self.api.selectOrNew(this.title);
+											}
+										},
+										{
+											title : 'Never show this again',
+											clicked : function() {
+												self.api.closeNotification(notification.notificationId);
+												self.api.getSettings().then(function(settings) {
+													settings.showBlogInvitation=false;
+													self.api.setSettings(settings).then(function() {
+														self.api.notify('Find the blog entry link in the extension Options');
+													});
 												});
-											});
+											}
 										}
-									}
-								],
-								requireInteraction : true
-							};
-							if (firstTime) {
-								notification.buttons.splice(1,1);
+									],
+									requireInteraction : true
+								};
+								if (firstTime) {
+									notification.buttons.splice(1,1);
+								}
 							}
 							self.api.notify(notification);
 						});

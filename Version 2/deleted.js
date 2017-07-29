@@ -77,7 +77,7 @@
 				if (itm.url) {
 					$('<a></a>')
 					.text(itm.title || itm.url)
-					.prepend($('<img/>').attr('src', ApiWrapper.getIconForUrl(itm.url)))
+					.prepend($('<img/>').addClass('favicon').hideOnError().attr('src', ApiWrapper.getIconForUrl(itm.url)))
 					.attr('href', itm.url || '#')
 					.attr('target', '_blank')
 					.appendTo(elem);

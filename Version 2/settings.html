@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
   <head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
     <title>Siderite's Bookmark Explorer - settings</title>
 	<script src="jquery-2.2.2.min.js"></script>
 	<script src="jquery-ui.min.js"></script>
@@ -58,8 +60,13 @@
 			</li><li>
 			<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
 			<div id="divShortcuts">
-				The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link<br/>
-				The default shortcuts are <i>Ctrl-Shift-K</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+				<div id="divShortcutsChrome">
+					The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link
+				</div>
+				<div id="divShortcutsFirefox">
+					The keyboard shortcuts for Firefox can be changed with an addon called Menu Wizard.
+				</div>
+				The default shortcuts are <i>Ctrl-Shift-O</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
 			</div>
 			</li>
 			</ul>

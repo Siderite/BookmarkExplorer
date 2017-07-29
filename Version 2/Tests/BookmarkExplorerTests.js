@@ -597,7 +597,7 @@ QUnit.test("BookmarkExplorer refreshIconAndMenu", function (assert) {
 						"1" : "Manage bookmark folder"
 					}, {
 						"0" : "prevBookmark",
-						"1" : "Navigate to previous bookmark (Ctrl-Shift-K)"
+						"1" : "Navigate to previous bookmark (Ctrl-Shift-O)"
 					}, {
 						"0" : "nextBookmark",
 						"1" : "Navigate to next bookmark (Ctrl-Shift-L)"

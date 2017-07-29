@@ -59,10 +59,6 @@
 		return JSON.parse(JSON.stringify(obj));
 	};
 
-	ApiWrapper.getIconForUrl = function (url) {
-		return 'chrome://favicon/' + url;
-	};
-
 	ApiWrapper.urlComparisonDefault = '<default>';
 	ApiWrapper.isValidUrlComparisonSchema = function (text) {
 		if (!text || !text.trim())
@@ -151,8 +147,61 @@
 	ApiWrapper.cleanUrl=function(url) {
 		if (!url) return url;
 		var uri=new URL(url);
-		uri.search = uri.search.replace(/utm_[^&]+&?/g, '').replace(/(wkey|wemail)[^&]+&?/g, '').replace(/(_hsenc|_hsmi|hsCtaTracking)[^&]+&?/g, '').replace(/&$/, '').replace(/^\?$/, '');
+		uri.search = uri.search
+			.replace(/utm_[^&]+&?/g, '')
+			.replace(/(wkey|wemail)[^&]+&?/g, '')
+			.replace(/(_hsenc|_hsmi|hsCtaTracking)[^&]+&?/g, '')
+			.replace(/(trk|trkEmail|midToken|fromEmail|ut|origin|anchorTopic|lipi)[^&]+&?/g, '')
+			.replace(/&$/, '')
+			.replace(/^\?$/, '');
+		uri.hash = uri.hash
+			.replace(/#\.[a-z0-9]{9}$/g,'');
 		return uri.toString();
+	};
+
+	ApiWrapper.getBrowser = function() {
+		if (ApiWrapper._browser) return ApiWrapper._browser;
+		var browser={
+			isOpera:false,
+			isChrome:false,
+			isSafari:false,
+			isFirefox:false,
+			isIE:false
+		};
+
+		var ag=navigator.userAgent;
+		if((ag.indexOf("Opera") || ag.indexOf('OPR')) != -1 ) 
+    	{
+        	browser.isOpera=true;
+    	}
+    	else if(ag.indexOf("Chrome") != -1 )
+    	{
+        	browser.isChrome=true;
+    	}
+    	else if(ag.indexOf("Safari") != -1)
+    	{
+        	browser.isSafari=true;
+    	}
+    	else if(ag.indexOf("Firefox") != -1 ) 
+    	{
+        	browser.isFirefox=true;
+    	}
+    	else if((ag.indexOf("MSIE") != -1 ) || !!document.documentMode) //IF IE > 10
+    	{
+      		browser.isIE=true;
+    	}  
+		ApiWrapper._browser=browser;
+		return browser;
+	}
+
+	ApiWrapper.getIconForUrl = function (url) {
+		if (!url) return url;
+		var browser=ApiWrapper.getBrowser();
+		if (browser.isChrome) {
+			return 'chrome://favicon/' + url;
+		}
+		var m=regUrl.exec(url);
+		return m[1]+'://'+m[2]+'/favicon.ico';
 	};
 
 	ApiWrapper.prototype = {
@@ -187,16 +236,19 @@
 						self.lastActivatedTabId = data.tabId;
 				});
 			}
-			if (self.chr && self.chr.notifications && self.chr.notifications.onButtonClicked) {
-				self.chr.notifications.onButtonClicked.addListener(function(notifId, btnIdx) {
-					var options=self.notifications[notifId];
-					if (options&&options.buttons) {
-						var btn=options.buttons[btnIdx];
-						if (btn && btn.clicked) {
-							btn.clicked();
+			var browser=ApiWrapper.getBrowser();
+			if (!browser.isFirefox) {
+				if (self.chr && self.chr.notifications && self.chr.notifications.onButtonClicked) {
+					self.chr.notifications.onButtonClicked.addListener(function(notifId, btnIdx) {
+						var options=self.notifications[notifId];
+						if (options&&options.buttons) {
+							var btn=options.buttons[btnIdx];
+							if (btn && btn.clicked) {
+								btn.clicked();
+							}
 						}
-					}
-				});
+					});
+				}
 			}
 		},
 		getUrlComparisonSchema : function (text) {
@@ -291,20 +343,27 @@
 				options={ items : options };
 			}
 			var self = this;
+			var browser=ApiWrapper.getBrowser();
 			var promise = new Promise(function (resolve, reject) {
 					var notifOpts={
 						type : "basic",
 						title : (options.title||"Siderite's Bookmark Explorer"),
 						message : (options.message || ''),
-						iconUrl : "bigIcon.png",
-						requireInteraction : !!options.requireInteraction
+						iconUrl : "bigIcon.png"
 					};
+					if (!browser.isFirefox) {
+						notifOpts.requireInteraction = !!options.requireInteraction;
+					}
 					if (options.items&&options.items.length) {
 						notifOpts.type = "list";
 						notifOpts.items = options.items.map(function(text) { return {title:'',message:text}; });
 					}
 					if (options.buttons&&options.buttons.length) {
-						notifOpts.buttons = options.buttons.map(function(btn) { return {title:btn.title,iconUrl:btn.iconUrl}; });
+						if (browser.isFirefox) {
+							throw "Notification buttons in Firefox do not work.";
+						} else {
+							notifOpts.buttons = options.buttons.map(function(btn) { return {title:btn.title,iconUrl:btn.iconUrl}; });
+						}
 					}
 					self.chr.notifications.create(null, notifOpts, function(notificationId) {
 						if (options.buttons&&options.buttons.length) {
@@ -367,12 +426,12 @@
 				manageContext : typeof(settings.manageContext) == 'undefined' ? false : !!settings.manageContext,
 				readLaterContext : typeof(settings.readLaterContext) == 'undefined' ? true : !!settings.readLaterContext,
 				readLaterFolderName : settings.readLaterFolderName || 'Read Later',
-				readLaterPageTimeout :  + (settings.readLaterPageTimeout) || 15000,
+				readLaterPageTimeout :  + (settings.readLaterPageTimeout) || 30000,
 				storeAllDeletedBookmarks : typeof(settings.storeAllDeletedBookmarks) == 'undefined' ? true : !!settings.storeAllDeletedBookmarks,
 				daysAutoClearDeleted :  + (settings.daysAutoClearDeleted) || 0,
 				enableBookmarkPage : typeof(settings.enableBookmarkPage) == 'undefined' ? false : !!settings.enableBookmarkPage,
 				confirmBookmarkPage : typeof(settings.confirmBookmarkPage) == 'undefined' ? true : !!settings.confirmBookmarkPage,
-				preloadNext : typeof(settings.preloadNext) == 'undefined' ? false : !!settings.preloadNext,
+				preloadNext : typeof(settings.preloadNext) == 'undefined' ? true : !!settings.preloadNext,
 				showCurrentIndex : typeof(settings.showCurrentIndex) == 'undefined' ? true : !!settings.showCurrentIndex,
 				showDuplicateNotifications : typeof(settings.showDuplicateNotifications) == 'undefined' ? true : !!settings.showDuplicateNotifications,
 				skipPageNotBookmarkedOnNavigate : typeof(settings.skipPageNotBookmarkedOnNavigate) == 'undefined' ? false : !!settings.skipPageNotBookmarkedOnNavigate,
@@ -381,7 +440,7 @@
 				 : ApiWrapper.urlComparisonDefault + ' host, path\r\n#examples:\r\n#www.somedomain.com scheme, host, path, params, hash\r\n#/documents path, hash',
 				showBlogInvitation : typeof(settings.showBlogInvitation) == 'undefined' ? true : !!settings.showBlogInvitation,
 				lastShownBlogInvitation : settings.lastShownBlogInvitation,
-				cleanUrls : typeof(settings.cleanUrls) == 'undefined' ? false : !!settings.cleanUrls
+				cleanUrls : typeof(settings.cleanUrls) == 'undefined' ? true : !!settings.cleanUrls
 			};
 			return data;
 		},
@@ -470,6 +529,10 @@
 		getTabsByUrl : function (url) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
+					var browser=ApiWrapper.getBrowser();
+					if (browser.isFirefox) {
+						url=url.replace(/^moz-extension/,'*');
+					}
 					self.chr.tabs.query({
 						url : url + '*'
 					}, resolve);
@@ -481,7 +544,6 @@
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.tabs.create({
 						url : url,
-						selected : true,
 						active : !notActive
 					}, resolve);
 				});
@@ -501,7 +563,7 @@
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					self.chr.tabs.update(tabId, {
-						selected : true
+						active : true
 					}, resolve);
 				});
 			return promise;
@@ -534,7 +596,14 @@
 							self.log('Error reading bookmarks!');
 							return;
 						}
-						resolve(tree[0].children[0]);
+						var bar = tree[0].children.filter(function(itm) {
+							return itm.id == 'toolbar_____' || itm.id == '1';
+						})[0];
+						if (!bar) {
+							self.log('Couldn not find bookmars toolbar!');
+							return;
+						}
+						resolve(bar);
 					});
 				});
 			return promise;
@@ -551,6 +620,7 @@
 			}
 			function walk(tree, result) {
 				var arr = tree.children || tree;
+				if (!Array.isArray(arr)) return;
 				arr.forEach(function (itm) {
 					if (itm.children) {
 						walk(itm, result);
@@ -580,6 +650,7 @@
 						var result = [];
 						function walk(tree) {
 							var arr = tree.children || tree;
+							if (!Array.isArray(arr)) return;
 							arr.forEach(function (itm) {
 								if (itm.children) {
 									walk(itm);
@@ -607,6 +678,7 @@
 			}
 			function walk(tree, result) {
 				var arr = tree.children || tree;
+				if (!Array.isArray(arr)) return;
 				arr.forEach(function (itm) {
 					if (itm.children) {
 						walk(itm, result);
@@ -639,6 +711,10 @@
 			var withArray = Array.isArray(bms);
 			if (!withArray) {
 				bms = [bms];
+			}
+			var browser=ApiWrapper.getBrowser();
+			if (browser.isFirefox) {
+				bms.reverse();
 			}
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
@@ -797,20 +873,34 @@
 				});
 			return promise;
 		},
-		sendMessage : function (tabId, data) {
+		sendMessageTimeout:5000,
+		sendMessageInterval:null,
+		sendMessage : function (data) {
 			var self = this;
 			var promise = new Promise(function (resolve, reject) {
 					var d = data || {};
-					var interval = setInterval(function () {
-							self.chr.tabs.sendMessage(tabId, d, null, function (val) {
-								if (!val)
-									return;
-								setTimeout(function () {
-									clearInterval(interval);
-								}, 50);
-								resolve.apply(this, arguments);
-							});
-						}, 100);
+					var time=0;
+					if (self.sendMessageInterval) {
+						clearInterval(self.sendMessageInterval);
+					}
+					self.sendMessageInterval = setInterval(function () {
+						self.chr.runtime.sendMessage(null, d, null, function (val) {
+							self.log(self.getError());
+							if (!val)
+								return;
+							setTimeout(function () {
+								clearInterval(self.sendMessageInterval);
+							}, 50);
+							resolve.apply(this, arguments);
+						});
+						time+=100;
+						if (time>=self.sendMessageTimeout) {
+							if (self.sendMessageInterval) {
+								clearInterval(self.sendMessageInterval);
+							}
+							resolve();
+						}
+					}, 100);
 				});
 			return promise;
 		},

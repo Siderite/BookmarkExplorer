@@ -3,7 +3,7 @@
 
 	"name" : "Siderite's Bookmark Explorer",
 	"description" : "Navigate through bookmark folders on a single page",
-	"version" : "2.9.6",
+	"version" : "2.9.7",
 
 	"permissions" : [
 		"tabs",
@@ -30,7 +30,7 @@
 	"commands" : {
 		"prevBookmark" : {
 			"suggested_key" : {
-				"default" : "Ctrl+Shift+K"
+				"default" : "Ctrl+Shift+O"
 			},
 			"description" : "Navigate to previous bookmark in the folder"
 		},

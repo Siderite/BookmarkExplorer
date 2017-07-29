@@ -7,6 +7,12 @@
 #divShortcuts {
 	display:none;
 }
+#divShortcutsFirefox {
+	display:none;
+}
+#divShortcutsChrome {
+	display:none;
+}
 #divSettings, #divInfo, #divAdvSettings {
 	min-height:350px;
 }
