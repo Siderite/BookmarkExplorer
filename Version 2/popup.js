@@ -37,6 +37,7 @@
 			});
 
 			function refresh() {
+			var browser=ApiWrapper.getBrowser();
 			api.getSettings().then(function (settings) {
 				btnSkip.toggle(!settings.hideSkipButton);
 				api.getCurrentTab().then(function (tab) {
@@ -54,7 +55,10 @@
 							if (data && data.prev) {
 								btnPrev.prop('disabled', false);
 								btnPrev.data('url', data.prev.url);
-								btnPrev.attr('title', (data.prev.title || '') + '\r\n' + data.prev.url + '\r\n(Ctrl-Shift-O)');
+								var shortcutText = browser.isChrome
+									? '(Ctrl-Shift-K)'
+									: '(Ctrl-Shift-O)';
+								btnPrev.attr('title', (data.prev.title || '') + '\r\n' + data.prev.url + '\r\n' + shortcutText);
 							} else {
 								btnPrev.prop('disabled', true);
 								btnPrev.removeData('url')

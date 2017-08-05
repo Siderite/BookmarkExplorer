@@ -186,6 +186,7 @@
 		refreshIconAndMenu : function (currentTab) {
 			var self = this;
 			var manageUrl = self.api.getExtensionUrl('manage.html');
+			var browser = ApiWrapper.getBrowser();
 			self.api.getSettings().then(function (settings) {
 				self.getInfo(currentTab.url).then(function (data) {
 					self.handleDuplicates(data, currentTab).then(function (data) {
@@ -196,6 +197,12 @@
 						}
 						self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
 						if (data && data.prev && settings.prevNextContext) {
+							var text = 'Navigate to previous bookmark ';
+							if (browser.isChrome) {
+								 text+='(Ctrl-Shift-K)';
+							} else {
+								 text+='(Ctrl-Shift-O)';
+							}
 							self.api.createMenuItem('prevBookmark', 'Navigate to previous bookmark (Ctrl-Shift-O)');
 						} else {
 							self.api.removeMenuItem('prevBookmark');
@@ -520,13 +527,15 @@
 								}
 							}
 							var arr = tree.children || tree;
+							var urlOptions = ApiWrapper.getUrlOptions(url,schema);
 							arr.forEach(function (itm, idx) {
 								if (itm.children) {
 									var r = walk(itm, path);
 									if (r)
 										setResult(r, itm);
 								}
-								if (!ApiWrapper.compareUrls(itm.url, url, schema).different) {
+								var itmUrlOptions = ApiWrapper.getUrlOptions(itm.url,schema);
+								if (!ApiWrapper.compareUrlOptions(itmUrlOptions, urlOptions).different) {
 									var prev = null;
 									for (var i = idx - 1; i >= 0; i--) {
 										if (arr[i].url) {
@@ -639,7 +648,7 @@
 											var url = urls[urls.length - i];
 											result = arr.filter(function (itm) {
 													return (itm.prev && !ApiWrapper.compareUrls(itm.prev.url, url, schema).different) ||
-													(itm.next && !ApiWrapper.compareUrls(itm.next.url, url, schema).different);
+													       (itm.next && !ApiWrapper.compareUrls(itm.next.url, url, schema).different);
 												});
 											if (result.length)
 												break;

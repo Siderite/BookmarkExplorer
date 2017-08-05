@@ -26,6 +26,10 @@ html,body {
 #spnButtons img {
 	margin-right:10px;
 	cursor:pointer;
+	display:none;
+}
+#spnButtons img.visible {
+	display:inline-block;
 }
 #spnHoldFolder {
     font-size: 1rem;

@@ -12,6 +12,7 @@
 		var divShortcuts = $('#divShortcuts', context);
 		var divShortcutsChrome = $('#divShortcutsChrome', context);
 		var divShortcutsFirefox = $('#divShortcutsFirefox', context);
+		var divShortcutsOpera = $('#divShortcutsOpera', context);
 		var chkPrevNextContext = $('#chkPrevNextContext', context);
 		var chkSkipButton = $('#chkSkipButton', context);
 		var chkManageContext = $('#chkManageContext', context);
@@ -183,11 +184,12 @@
 			var browser=ApiWrapper.getBrowser();
 			if (browser.isChrome) {
 				divShortcutsChrome.show();
-			}
+			} else
 			if (browser.isFirefox) {
 				divShortcutsFirefox.show();
-			}
+			} else
 			if (browser.isOpera) {
+				divShortcutsOpera.show();
 				api.selectOrNew('opera://settings/configureCommands');
 			}
 		});

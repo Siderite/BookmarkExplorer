@@ -96,16 +96,17 @@
 		return o;
 	};
 	var regUrl = /^\s*(?:([^:]+):(?:\/\/)?)?([^\/\?#]*)[\/]?([^\?#]*?)[\/]?(\?[^#]*?)?(#.*)?\s*$/;
-	ApiWrapper.compareUrls = function (u1, u2, schema, extraOptions) {
-		if (!schema) {
-			throw "No comparison schema set";
+	ApiWrapper.getUrlOptions = function(url, schema) {
+		url = url && url.trim() ? url.toLowerCase() : '';
+		var result = {
+			options: ApiWrapper.getComparisonOptions(url, schema),
+			match: url ? regUrl.exec(url) : ['', '', '', '', '']
 		}
-
-		u1 = u1 && u1.trim() ? u1.toLowerCase() : '';
-		u2 = u2 && u2.trim() ? u2.toLowerCase() : '';
-
-		var o1 = ApiWrapper.getComparisonOptions(u1, schema);
-		var o2 = ApiWrapper.getComparisonOptions(u2, schema);
+		return result;
+	}
+	ApiWrapper.compareUrlOptions = function(opt1, opt2, extraOptions) {
+		var o1 = opt1.options;
+		var o2 = opt2.options;
 		var options = extraOptions || {};
 		options.scheme = options.scheme || o1.scheme || o2.scheme;
 		options.host = options.host || o1.host || o2.host;
@@ -113,8 +114,8 @@
 		options.params = options.params || o1.params || o2.params;
 		options.hash = options.hash || o1.hash || o2.hash;
 
-		var m1 = u1 ? regUrl.exec(u1) : ['', '', '', '', ''];
-		var m2 = u2 ? regUrl.exec(u2) : ['', '', '', '', ''];
+		var m1 = opt1.match;
+		var m2 = opt2.match;
 
 		var result = 0;
 		var different = false;
@@ -143,15 +144,23 @@
 			value : result
 		};
 	};
+	ApiWrapper.compareUrls = function(u1, u2, schema, extraOptions) {
+		if (!schema) {
+			throw "No comparison schema set";
+		}
+		var opt1 = ApiWrapper.getUrlOptions(u1, schema);
+		var opt2 = ApiWrapper.getUrlOptions(u2, schema);
+		return ApiWrapper.compareUrlOptions(op1, opt2, extraOptions);
+	};
 
 	ApiWrapper.cleanUrl=function(url) {
 		if (!url) return url;
 		var uri=new URL(url);
 		uri.search = uri.search
 			.replace(/utm_[^&]+&?/g, '')
-			.replace(/(wkey|wemail)[^&]+&?/g, '')
-			.replace(/(_hsenc|_hsmi|hsCtaTracking)[^&]+&?/g, '')
-			.replace(/(trk|trkEmail|midToken|fromEmail|ut|origin|anchorTopic|lipi)[^&]+&?/g, '')
+			.replace(/(wkey|wemail)=[^&]+&?/g, '')
+			.replace(/(_hsenc|_hsmi|hsCtaTracking)=[^&]+&?/g, '')
+			.replace(/(trk|trkEmail|midToken|fromEmail|ut|origin|anchorTopic|lipi)=[^&]+&?/g, '')
 			.replace(/&$/, '')
 			.replace(/^\?$/, '');
 		uri.hash = uri.hash
@@ -170,7 +179,7 @@
 		};
 
 		var ag=navigator.userAgent;
-		if (ag.indexOf("Opera") || ag.indexOf('OPR') != -1 ) 
+		if (ag.indexOf("Opera")!=-1 || ag.indexOf('OPR') != -1 ) 
     	{
         	browser.isOpera=true;
     	}

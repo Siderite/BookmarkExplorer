@@ -116,8 +116,10 @@
 					refreshMenuOptions(true);
 				});
 				api.getUrlComparisonSchema().then(function (schema) {
+					var urlOptions = ApiWrapper.getUrlOptions(data.current.url,schema);
 					tree.find('a').each(function () {
-						if (ApiWrapper.compareUrls($(this).attr('href'), data.current.url, schema).different)
+						var anchorUrlOptions = ApiWrapper.getUrlOptions($(this).attr('href'),schema);
+						if (ApiWrapper.compareUrlOptions(anchorUrlOptions, urlOptions).different)
 							return;
 
 						var par = $(this).parent();
@@ -176,9 +178,10 @@
 				return elem;
 			}
 			function anyDuplicates(items, schema) {
-				for (var i = 0; i < items.length; i++) {
+				var options = items.map(function(itm) { return ApiWrapper.getUrlOptions(itm.url,schema); });
+				for (var i = 0; i < options.length; i++) {
 					for (var j = 0; j < i; j++) {
-						if (!ApiWrapper.compareUrls(items[i].url, items[j].url, schema).different) {
+						if (!ApiWrapper.compareUrlOptions(options[i].url, options[j].url).different) {
 							return true;
 						}
 					}
@@ -193,9 +196,9 @@
 					if (!ignoreDuplicates && hasData) {
 						hasDuplicates = anyDuplicates(currentData.folder.children, schema);
 					}
-					imgToggleAll.toggle(hasData);
-					imgToggleBefore.toggle(hasData);
-					imgSelectDuplicates.toggle(hasData && hasDuplicates);
+					imgToggleAll.toggleClass('visible',hasData);
+					imgToggleBefore.toggleClass('visible',hasData);
+					imgSelectDuplicates.toggleClass('visible',hasData && hasDuplicates);
 					spnHoldFolder.toggle(hasData);
 					var ul = tree.find('>ul');
 					var checkedInputs = ul.find('input:nothidden:checked');
@@ -367,20 +370,21 @@
 			function selectDuplicates() {
 				api.getUrlComparisonSchema().then(function (schema) {
 					var ul = tree.find('>ul');
-					var urls = [];
+					var options = [];
 					ul.find('>li>div:nothidden').each(function () {
 						var a = $('a', this);
 						var chk = $('input', this);
 						var url = a.attr('href');
 						var checked = false;
-						urls.forEach(function (u) {
-							if (!ApiWrapper.compareUrls(u, url, schema).different) {
+						var urlOptions=ApiWrapper.getUrlOptions(url,schema);
+						options.forEach(function (opt) {
+							if (!ApiWrapper.compareUrlOptions(opt, urlOptions).different) {
 								checked = true;
 								return false;
 							}
 						});
 						chk.prop('checked', checked);
-						urls.push(url);
+						options.push(urlOptions);
 					});
 					refreshMenuOptions(true);
 				});
