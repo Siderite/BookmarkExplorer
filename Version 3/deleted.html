@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+    <title>Siderite's Bookmark Explorer - deleted items</title>
+	<script src="jquery-3.2.1.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="ApiWrapper.js"></script>
+	<script src="ui.js"></script>
+	<script src="deleted.js"></script>
+	<link rel="stylesheet" type="text/css" href="deleted.css" media="all">
+  </head>
+  <body>
+	<div id="divHeader"><span id="spnTitle"></span><span class="stats"></span><span id="spnButtons"><img id="imgToggleAll" title="Toggle all before current"src="toggleAll.png"/><img id="imgMenu" title="Menu" src="menu.png"/></span></div>
+	<div id="divFilter"><label for="txtFilter">Filter:</label><input id="txtFilter" /><img src="clearText.png" title="clear filter"/></div>
+	<div id="divList"></div>
+	<ul id="ulMenu">
+		<li class="ui-widget-header">Actions</li>
+		<li data-command="restore">Restore selected</li>
+		<li data-command="clearAll">Clear all data</li>
+	</ul>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+  <head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+    <title>Siderite's Bookmark Explorer - manage bookmarks</title>
+	<script src="jquery-3.2.1.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="ApiWrapper.js"></script>
+	<script src="ui.js"></script>
+	<script src="manage.js"></script>
+	<link rel="stylesheet" type="text/css" href="manage.css" media="all">
+  </head>
+  <body>
+	<div id="divHeader">
+		<span id="spnTitle"></span>
+		<span id="spnHoldFolder">
+			<label for="chkHoldFolder">Stay in this folder</label>
+			<input type="checkbox" id="chkHoldFolder"/>
+		</span>
+		<span id="spnButtons">
+			<img id="imgSelectDuplicates" title="Select duplicates in the folder (except the first)" src="selectDuplicates.png"/>
+			<img id="imgToggleBefore" title="Toggle all before current" src="toggleBefore.png"/>
+			<img id="imgToggleAll" title="Toggle all bookmarks" src="toggleAll.png"/>
+			<img id="imgMenu"  title="Menu" src="menu.png" class="visible"/>
+		</span>
+	</div>
+	<div id="divSubheader"></div>
+	<div id="divFilter"><label for="txtFilter">Filter:</label><input id="txtFilter" /><img src="clearText.png" title="clear filter"/></div>
+	<div id="divCounts"><span></span></div>
+	<div id="divTree"></div>
+	<ul id="ulMenu">
+		<li class="ui-widget-header">Actions</li>
+		<li data-command="delete">Delete selected</li>
+		<li data-command="moveToEnd">Move selected to end of folder</li>
+		<li data-command="moveToStart">Move selected to start of folder</li>
+		<li class="ui-widget-header">Pages</li>
+		<li data-command="restore">Restore deleted bookmarks</li>
+		<li data-command="settings">Settings</li>
+		<li class="ui-widget-header">Import/Export</li>
+		<li data-command="copy">Copy URLs to clipboard</li>
+		<li data-command="paste">Import URLs</li>
+	</ul>
+	<div id="divCopyPaste">
+		<textarea></textarea>
+		<div class="buttons">
+			<button id="btnClose">Close</button>
+			<button id="btnOK">OK</button>
+		</div>
+	</div>
+  </body>
+</html>

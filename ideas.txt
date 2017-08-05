@@ -65,6 +65,11 @@
 *- bug: get bookmarks URLs gives all URLs, not just the selected ones
 *- bug: copy/paste modal doesn't close with Esc
 *- bug: on Firefox, opening Manage/Settings doesn't close the popup
+- exported URLs should be cleaned, even if the bookmarks URLs are not
+- Shift-Space for selecting multiple bms
+- notify url cleaning updates
+*- Manage page - hide buttons until they are enabled
+- bug: weird alignment with list items in Firefox when moving with the keyboard
 
 Ideas for speed improvements:
 - compareUrls

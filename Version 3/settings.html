@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+	<meta content="utf-8" http-equiv="encoding">
+    <title>Siderite's Bookmark Explorer - settings</title>
+	<script src="jquery-3.2.1.min.js"></script>
+	<script src="jquery-ui.min.js"></script>
+	<script src="ApiWrapper.js"></script>
+	<script src="settings.js"></script>
+	<link rel="stylesheet" type="text/css" href="jquery-ui.min.css" media="all">
+	<link rel="stylesheet" type="text/css" href="settings.css" media="all">
+  </head>
+  <body>
+	<div id="divTabs">
+		<ul>
+			<li><a href="#divInfo">Help</a></li>
+			<li><a href="#divSettings">Settings</a></li>
+			<li><a href="#divAdvSettings">Advanced</a></li>
+		</ul>
+		<div id="divInfo">
+			<ul>
+			<li>Assuming the current browsed page is bookmarked, you can navigate to the next or the previous URL from the same bookmark folder</li>
+			<li>You can use context menus, keyboard shortcuts or the buttons in the extension popup to navigate</li>
+			<li>You can open a management page for the current bookmark folder, allowing you to select and remove read URLs</li>
+			<li>In case you delete bookmarks by mistake, there is a deleted items page that allows you to restore what was deleted</li>
+			<li>The Read Later functionality allows you to directly bookmark a link, without keeping its page open</li>
+			<li>The extension allows for importing/exporting of links as a simple list of URLs</li>
+			<li>The extension does not connect to outside servers, everything is stored locally (warning: uninstalling it loses the deleted bookmarks data)</li>
+			<li>You can tweak the way URLs are compared to each other in the Advanced section, for specific sites</li>
+			</ul>
+		</div>
+		<div id="divSettings">
+			<ul id="ulSettings">
+			<li>
+			<input type="checkbox" id="chkPrevNextContext"/><label for="chkPrevNextContext">Enable Previous/Skip/Next context menus</label>
+			</li><li>
+			<input type="checkbox" id="chkSkipButton"/><label for="chkSkipButton">Enable Skip Bookmark button</label>
+			</li><li>
+			<input type="checkbox" id="chkManageContext"/><label for="chkManageContext">Enable Manage context menu</label>
+			</li><li>
+			<input type="checkbox" id="chkShowCurrentIndex"/><label for="chkShowCurrentIndex" title="Show current index in a bookmark folder on the extension icon">Show current index</label>
+			</li><li>
+			<input type="checkbox" id="chkReadLaterContext"/><label for="chkReadLaterContext">Enable Read Later context menu</label>
+			</li><li id="liReadLaterFolderName">
+			<label title="The name(s) of the folder(s) where Read Later bookmarks will be created">Read Later folder name(s):</label>
+			<button id="btnAddFolderName">Add Folder</button>
+			</li><li>
+			<label for="txtReadLaterPageTimeout" title="In order to get the URL, title and icon after all redirections and page loads, leave this to at least 10 seconds">Read Later page close time in seconds:</label><br/><input type="text" id="txtReadLaterPageTimeout"/>
+			</li><li>
+			<input type="checkbox" id="chkStoreAllDeletedBookmarks"/><label for="chkStoreAllDeletedBookmarks" title="Even if you delete them manually or some other application deletes them, store them for later retrieval">Store bookmarks deleted anywhere</label>
+			</li><li>
+			<span title="The same functionality as bookmark in Read Later">Read later for current page: </span>
+			<input type="checkbox" id="chkEnableBookmarkPage"/><label for="chkEnableBookmarkPage" title="Enables bookmark current page">Enable</label>
+			<input type="checkbox" id="chkConfirmBookmarkPage"/><label for="chkConfirmBookmarkPage" title="Asks for confirmation (as to differentiate from read link)">Confirm</label>
+			</li><li>
+			<label for="txtAutoClearDeleted" title="The records will be cleared after the number of days entered">How many days to remember deleted bookmarks:</label><br/><input type="text" id="txtAutoClearDeleted"/>
+			</li><li>
+			<input type="checkbox" id="chkPreloadNext"/><label for="chkPreloadNext" title="Attempt to preload the next tab so that navigate to next would be faster">Preload next tab</label>
+			</li><li>
+			<a id="aShortcuts" href="#" target="_blank">Keyboard shortcuts</a>
+			<div id="divShortcuts">
+				<div id="divShortcutsChrome">
+					The keyboard shortcuts for any extension can be configured from the Extensions page by clicking on "Keyboard Shortcuts". Just close this popup and scroll to the bottom of the page, where you will find the link<br/>
+					The default shortcuts are <i>Ctrl-Shift-K</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+				</div>
+				<div id="divShortcutsFirefox">
+					The keyboard shortcuts for Firefox can be changed with an addon called <a href="https://addons.mozilla.org/en-US/firefox/addon/s3menu-wizard/" target="_blank" title="">Menu Wizard</a>.<br/>
+					The default shortcuts are <i>Ctrl-Shift-O</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+				</div>
+				<div id="divShortcutsOpera">
+					The default shortcuts are <i>Ctrl-Shift-O</i> and <i>Ctrl-Shift-L</i> for Previous/Next bookmark.
+				</div>
+			</div>
+			</li>
+			</ul>
+		</div>
+		<div id="divAdvSettings">
+			<div class="note">
+				Warning! These settings might adversely affect your user experience. Use with caution.
+			</div>
+			<ul id="ulAdvSettings">
+			<li>
+			<input type="checkbox" id="chkDuplicateNotifications"/><label for="chkDuplicateNotifications" title="Duplicates may interfere with the extension functionality, it is better to be forewarned">Enable notifications for duplicate bookmarks</label>
+			</li><li>
+			<input type="checkbox" id="chkSkipPageNotBookmarkedOnNavigate"/><label for="chkSkipPageNotBookmarkedOnNavigate" title="Do not show 'page not bookmarked' popup when navigating">Always navigate from last bookmarked url</label>
+			</li><li>
+			<input type="checkbox" id="chkCleanUrls"/><label for="chkCleanUrls" title="Stuff like UTMs and such">Clean bookmark URLs of marketing parameters</label>
+			</li>
+			</ul>
+			<p>
+            <b>URL comparison</b><br/>
+			URL segments that are taken into consideration when looking for duplicates (format: any part of a URL followed by any combination of scheme, host, path, params and hash. lines starting with # are ignored)<br/>
+			<textarea id="txtCustomUrlComparison"></textarea><p>
+			<p><span id="txtCustomUrlComparisonInvalid">Scheme not valid!</span></p>
+		</div>
+	</div>
+	<div id="divFooter">
+		<a href="https://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html" target="SideriteBlogBE">Discussion, suggestions, bug reports and help</a>
+	</div>
+  </body>
+</html>
