@@ -96,13 +96,8 @@
 				api.setSettings(settings);
 			});
 
-
-
-			const n={};
-			(settings.readLaterFolderName||'Read Later').split(/,/).forEach(name => {
-				if (name) n[name]=true;
-			});
-			const names=Object.keys(n);
+			let names = (settings.readLaterFolderName||'Read Later').split(/,/);
+			names = [...new Set(names)];
 
 			liReadLaterFolderName
 				.on('keyup paste', () => {

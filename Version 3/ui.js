@@ -133,7 +133,7 @@
 					const items = target.find(options.items);
 					const val=flt.val();
 					if (val) {
-						const splits=val.split(/\s+/).map(s => s.toLowerCase());
+						const splits=val.split(/\s+/).filter(s=>s).map(s => s.toLowerCase());
 						items.each(function() {
 							const itm=$(this);
 							let content=itm.text().toLowerCase();

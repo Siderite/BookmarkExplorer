@@ -327,7 +327,7 @@
 										eh.remove();
 									setTimeout(() => {
 										self.api.closeTab(tab.id);
-									}, 0.05 * settings.readLaterPageTimeout);
+									}, settings.readLaterPageTimeout);
 								});
 							}, timeout);
 					};
@@ -662,10 +662,7 @@
 									if (settings.showDuplicateNotifications) {
                                         result.notifications.push('Duplicate bookmarks found:');
 
-                                        for (const r of arr) {
-                                            result.notifications.push(`- "${max(r.current.title, 50)}" in "${max(r.folder.title, 20)}" (${max(r.current.url, 50)})`);
-                                        }
-
+                                        arr.forEach(r=>result.notifications.push(`- "${max(r.current.title, 50)}" in "${max(r.folder.title, 20)}" (${max(r.current.url, 50)})`));
                                         result.notifications.push(`Using the one in "${max(result.folder.title, 20)}"@${result.index + 1}`);
                                     }
 									resolve(result);

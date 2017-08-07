@@ -158,7 +158,7 @@
             }
             const opt1 = ApiWrapper.getUrlOptions(u1, schema);
             const opt2 = ApiWrapper.getUrlOptions(u2, schema);
-            return ApiWrapper.compareUrlOptions(op1, opt2, extraOptions);
+            return ApiWrapper.compareUrlOptions(opt1, opt2, extraOptions);
         }
 
         static cleanUrl(url) {
