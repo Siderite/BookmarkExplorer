@@ -200,6 +200,7 @@
 							self.api.removeMenuItem('manage');
 						}
 						self.api.setIcon(currentTab.id, data ? 'icon.png' : 'icon-gray.png');
+						self.api.toggleIcon(currentTab.id, true);
 						if (data && data.prev && settings.prevNextContext) {
 							let text = 'Navigate to previous bookmark ';
 							if (browser.isChrome) {

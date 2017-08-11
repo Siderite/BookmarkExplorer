@@ -76,14 +76,22 @@
                     return;
                 if (/^#/.test(line))
                     return;
-                const m = /^([^\s]+)\s+((?:scheme|host|path|params|hash)(?:\s*,\s*(?:scheme|host|path|params|hash))*)$/i.exec(line);
+                const m = /^([^\s]+)\s+((?:scheme|host|path|params|hash)(?:\s*,\s*(?:scheme|host|path|params|hash))*)\s*$/i.exec(line);
                 if (!m)
+				{
                     valid = false;
-                if (m[1].toLowerCase() == ApiWrapper.urlComparisonDefault)
-                    hasDefault = true;
+				} else {
+                	if (m[1].toLowerCase() == ApiWrapper.urlComparisonDefault)
+                    	hasDefault = true;
+				}
             });
             return valid && hasDefault;
         }
+
+		static refreshCache() {
+			ApiWrapper._comparisonOptions={};
+			ApiWrapper._browser=null;
+		}
 
         static getComparisonOptions(url, schema) {
             let o = ApiWrapper._comparisonOptions[url];
@@ -297,6 +305,10 @@
 		getCurrentTab() {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.query) {
+						reject("This platform doesn't support the querying tabs API!");
+						return;
+					};
 					self.chr.tabs.query({
 						'active' : true,
 						'lastFocusedWindow' : true
@@ -329,6 +341,10 @@
 		getAllTabs() {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.query) {
+						reject("This platform doesn't support the querying tabs API!");
+						return;
+					};
 					self.chr.tabs.query({}, resolve);
 				});
 			return promise;
@@ -337,6 +353,10 @@
 		getBackgroundPage() {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.runtime || !self.chr.runtime.getBackgroundPage) {
+						reject("This platform doesn't support the get background page API!");
+						return;
+					};
 					self.chr.runtime.getBackgroundPage(resolve);
 				});
 			return promise;
@@ -345,6 +365,10 @@
 		setUrl(tabId, url) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.update) {
+						reject("This platform doesn't support the update tabs API!");
+						return;
+					};
 					self.pushUrlForTab(tabId, url).then(() => {
 						self.chr.tabs.update(tabId, {
 							url
@@ -366,6 +390,10 @@
 			const self = this;
 			const browser=ApiWrapper.getBrowser();
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.notifications || !self.chr.notifications.create) {
+						reject("This platform doesn't support the create notifications API!");
+						return;
+					};
 					const notifOpts={
 						type : "basic",
 						title : (options.title||"Siderite's Bookmark Explorer"),
@@ -407,6 +435,10 @@
 			if (!id) return;
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+				if (!self.chr.notifications || !self.chr.notifications.clear) {
+					reject("This platform doesn't support the clear notifications API!");
+					return;
+				};
 				self.chr.notifications.clear(id,resolve);
 			});
 			return promise;
@@ -415,6 +447,10 @@
 		getDataSize(key) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.storage || !self.chr.storage.local || !self.chr.storage.local.getBytesInUse) {
+						reject("This platform doesn't support the local storage get bytes in use API!");
+						return;
+					};
 					self.chr.storage.local.getBytesInUse(key, resolve);
 				});
 			return promise;
@@ -423,6 +459,10 @@
 		getData(key) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.storage || !self.chr.storage.local || !self.chr.storage.local.get) {
+						reject("This platform doesn't support the local storage get data API!");
+						return;
+					};
 					self.chr.storage.local.get(key, data => {
 						data && data[key] ? resolve(data[key]) : resolve();
 					});
@@ -433,6 +473,10 @@
 		setData(key, value) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.storage || !self.chr.storage.local || !self.chr.storage.local.set) {
+						reject("This platform doesn't support the local storage set data API!");
+						return;
+					};
 					const obj = {};
 					obj[key] = value;
 					self.chr.storage.local.set(obj, resolve);
@@ -443,6 +487,10 @@
 		removeData(key, value) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.storage || !self.chr.storage.local || !self.chr.storage.local.remove) {
+						reject("This platform doesn't support the local storage remove data API!");
+						return;
+					};
 					const obj = {};
 					obj[key] = value;
 					self.chr.storage.local.remove(key, resolve);
@@ -481,13 +529,17 @@
 			return new Promise((resolve, reject) => {
 				self.getData(self.settingsKey).then(data => {
 					data = self.expandSettings(data);
+					if (JSON.stringify(data)!=JSON.stringify(ApiWrapper._prevSettings)) {
+						ApiWrapper.refreshCache();
+						ApiWrapper._prevSettings=data;
+					}
 					resolve(data);
 				});
 			});
 		}
 
 		setSettings(settings) {
-			ApiWrapper._comparisonOptions={};
+			ApiWrapper.refreshCache();
 			const self = this;
 			return new Promise((resolve, reject) => {
 				const data = self.expandSettings(settings);
@@ -500,7 +552,12 @@
 		setIcon(tabId, icon) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
-					self.chr.browserAction.setIcon({
+					const action = self.chr.browserAction || self.chr.pageAction;
+					if (!action || !action.setIcon) {
+						reject("This platform doesn't support the set icon API!");
+						return;
+					};
+					action.setIcon({
 						path : {
 							'19' : icon
 						},
@@ -513,20 +570,39 @@
 			return promise;
 		}
 
+		toggleIcon(tabId, value) {
+			const self = this;
+			const promise = new Promise((resolve, reject) => {
+					const action = self.chr.pageAction;
+					if (action) {
+						let f = value 
+							? action.show
+							: action.hide;
+						f(tabId);
+						self.log(self.getError());
+					}
+					return resolve.apply(this, arguments)
+				});
+			return promise;
+		}
+
 		setBadge(tabId, text, color) {
 			const self = this;
 			color = color || 'black';
 			const promise = new Promise(function (resolve, reject) {
-					const id =  + (tabId);
-					if (id) {
-						self.chr.browserAction.setBadgeText({
-							text : `${text || ''}`,
-							tabId : id
-						});
-						self.chr.browserAction.setBadgeBackgroundColor({
-							color,
-							tabId : id
-						});
+					const action = self.chr.browserAction;
+					if (action) {
+						const id =  + (tabId);
+						if (id) {
+							action.setBadgeText({
+								text : `${text || ''}`,
+								tabId : id
+							});
+							action.setBadgeBackgroundColor({
+								color,
+								tabId : id
+							});
+						}
 					}
 					return resolve.apply(this);
 				});
@@ -536,9 +612,14 @@
 		setTitle(tabId, text) {
 			const self = this;
 			const promise = new Promise(function (resolve, reject) {
+					const action = self.chr.browserAction || self.chr.pageAction;
+					if (!action || !action.setTitle) {
+						reject("This platform doesn't support the set title API!");
+						return;
+					};
 					const id =  + (tabId);
 					if (id) {
-						self.chr.browserAction.setTitle({
+						action.setTitle({
 							title : `${text || ''}`,
 							tabId : id
 						});
@@ -549,6 +630,10 @@
 		}
 
 		getExtensionUrl(file) {
+			if (!this.chr.extension || !this.chr.extension.getURL) {
+				reject("This platform doesn't support the get extension URL API!");
+				return;
+			};
 			return this.chr.extension.getURL(file);
 		}
 
@@ -559,6 +644,10 @@
 		getTabById(tabId) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.get) {
+						reject("This platform doesn't support the get tabs API!");
+						return;
+					};
 					self.chr.tabs.get(tabId, tab => {
 						tab ? resolve(tab) : self.log(`Error getting tab ${tabId}: ${self.getError()}`);
 					});
@@ -569,6 +658,10 @@
 		getTabsByUrl(url) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.query) {
+						reject("This platform doesn't support the query tabs API!");
+						return;
+					};
 					const browser=ApiWrapper.getBrowser();
 					if (browser.isFirefox) {
 						url=url.replace(/^moz-extension/,'*');
@@ -586,6 +679,10 @@
 		newTab(url, notActive) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.create) {
+						reject("This platform doesn't support the create tabs API!");
+						return;
+					};
 					self.chr.tabs.create({
 						url,
 						active : !notActive
@@ -597,6 +694,10 @@
 		closeTab(tabId) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.remove) {
+						reject("This platform doesn't support the remove tabs API!");
+						return;
+					};
 					self.chr.tabs.remove(tabId, function () {
 						self.log(self.getError());
 						return resolve.apply(this, arguments)
@@ -608,6 +709,10 @@
 		setSelected(tabId) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.tabs || !self.chr.tabs.update) {
+						reject("This platform doesn't support the update tabs API!");
+						return;
+					};
 					self.chr.tabs.update(tabId, {
 						active : true
 					}, resolve);
@@ -632,6 +737,10 @@
 		getTree() {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.bookmarks) {
+						reject("This platform doesn't support the bookmarks API!");
+						return;
+					}
 					self.chr.bookmarks.getTree(resolve);
 				});
 			return promise;
@@ -751,6 +860,10 @@
 		removeBookmarksById(ids) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.bookmarks || !self.chr.bookmarks.remove) {
+						reject("This platform doesn't support the remove bookmarks API!");
+						return;
+					};
 					self.getBookmarksByIds(ids).then(bms => {
 						bms.forEach(bm => {
 							self.chr.bookmarks.remove(bm.id, () => {});
@@ -772,6 +885,10 @@
 			}
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.bookmarks || !self.chr.bookmarks.create) {
+						reject("This platform doesn't support the create bookmarks API!");
+						return;
+					};
 					const nodes = [];
 					let k = bms.length;
 					bms.forEach(bm => {
@@ -792,6 +909,10 @@
 		updateBookmark(id, changes) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+				if (!self.chr.bookmarks || !self.chr.bookmarks.update) {
+					reject("This platform doesn't support the update bookmarks API!");
+					return;
+				};
 				self.chr.bookmarks.update(id, changes, resolve);
 			});
 			return promise;
@@ -908,6 +1029,10 @@
 			}
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.contextMenus || !self.chr.contextMenus.create) {
+						reject("This platform doesn't support the create context menu API!");
+						return;
+					};
 					const itm = {
 						"id" : id,
 						"title" : title,
@@ -926,6 +1051,10 @@
 		removeMenuItem(id) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.contextMenus || !self.chr.contextMenus.remove) {
+						reject("This platform doesn't support the remove context menu API!");
+						return;
+					};
 					self.chr.contextMenus.remove(id, function () {
 						self.log(self.getError());
 						resolve(arguments);
@@ -937,6 +1066,10 @@
 		sendMessage(data) {
 			const self = this;
 			const promise = new Promise((resolve, reject) => {
+					if (!self.chr.runtime || !self.chr.runtime.sendMessage) {
+						reject("This platform doesn't support the create context menu API!");
+						return;
+					};
 					const d = data || {};
 					let time=0;
 					if (self.sendMessageInterval) {
@@ -1052,60 +1185,70 @@
 		}
 
 		onUpdatedTab(listener) {
+			if (!this.chr.tabs || !this.chr.tabs.onUpdated) return;
 			const eh = new EventHandler(this.chr.tabs.onUpdated, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onCreatedTab(listener) {
+			if (!this.chr.tabs || this.chr.tabs.onCreated) return;
 			const eh = new EventHandler(this.chr.tabs.onCreated, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onRemovedTab(listener) {
+			if (!this.chr.tabs || !this.chr.tabs.onRemoved) return;
 			const eh = new EventHandler(this.chr.tabs.onRemoved, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onActivatedTab(listener) {
+			if (!this.chr.tabs || !this.chr.tabs.onActivated) return;
 			const eh = new EventHandler(this.chr.tabs.onActivated, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onCreatedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onCreated) return;
 			const eh = new EventHandler(this.chr.bookmarks.onCreated, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onRemovedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onRemoved) return;
 			const eh = new EventHandler(this.chr.bookmarks.onRemoved, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onChangedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onChanged) return;
 			const eh = new EventHandler(this.chr.bookmarks.onChanged, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onMovedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onMoved) return;
 			const eh = new EventHandler(this.chr.bookmarks.onMoved, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onChildrenReorderedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onChildrenReordered) return;
 			const eh = new EventHandler(this.chr.bookmarks.onChildrenReordered, listener);
 			this.handlers.push(eh);
 			return eh;
 		}
 
 		onImportEndedBookmark(listener) {
+			if (!this.chr.bookmarks || !this.chr.bookmarks.onImportEnded) return;
 			const eh = new EventHandler(this.chr.bookmarks.onImportEnded, listener);
 			this.handlers.push(eh);
 			return eh;
@@ -1113,6 +1256,7 @@
 
 		onCommand(listener) {
 			const self = this;
+			if (!self.chr.commands || !self.chr.commands.onCommand) return;
 			const handler = new EventHandler();
 			handler.commandListener = command => {
 				listener(command);
@@ -1134,6 +1278,7 @@
 		}
 
 		onMessage(listener) {
+			if (!this.chr.runtime || !this.chr.runtime.onMessage) return;
 			const eh = new EventHandler(this.chr.runtime.onMessage, (request, sender, sendResponse) => {
 					const result = listener(request);
 					if (typeof(sendResponse) == 'function')

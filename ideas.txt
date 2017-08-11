@@ -70,6 +70,7 @@
 - notify url cleaning updates
 *- Manage page - hide buttons until they are enabled
 - bug: weird alignment with list items in Firefox when moving with the keyboard
+- use the history API to go to urls that are in the history list (like emulating the back button when going to the previous bookmark)
 
 Ideas for speed improvements:
 - compareUrls

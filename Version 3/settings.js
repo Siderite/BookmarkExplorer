@@ -166,9 +166,9 @@
 				if (ApiWrapper.isValidUrlComparisonSchema(val)) {
 					settings.urlComparisonSchema = val;
 					api.setSettings(settings);
-					txtCustomUrlComparisonInvalid.hide();
+					txtCustomUrlComparisonInvalid.css({visibility:'hidden'});
 				} else {
-					txtCustomUrlComparisonInvalid.show();
+					txtCustomUrlComparisonInvalid.css({visibility:'visible'});
 				}
 			});
 		});
