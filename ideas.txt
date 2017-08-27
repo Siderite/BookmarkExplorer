@@ -71,6 +71,11 @@
 *- Manage page - hide buttons until they are enabled
 - bug: weird alignment with list items in Firefox when moving with the keyboard
 - use the history API to go to urls that are in the history list (like emulating the back button when going to the previous bookmark)
+- feature: move bookmark in another folder, then proceed to the next item from this folder
+- domain register options (.com .net, etc)
+- use await/async in the code
+- option to clear selected items in the Deleted list rather than restore them
+- bug: clear all data from the deleted items does not refresh the header
 
 Ideas for speed improvements:
 - compareUrls

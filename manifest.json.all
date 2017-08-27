@@ -4,6 +4,7 @@
 	"name" : "Siderite's Bookmark Explorer",
 	"description" : "Navigate through bookmark folders on a single page",
 	"version" : "3.0.0",
+	"author" : "Siderite", //Edge
 
 	"permissions" : [
 		"tabs",
@@ -15,8 +16,10 @@
 		"storage",
 		"unlimitedStorage" //Chrome
 	],
-	"page_action" : { //browser_action for desktop versions
-		"default_icon" : "icon.png",
+	"browser_action" : { //page_action for Firefox for Android
+		"default_icon" : {
+			"19": "icon.png"
+		},
 		"default_popup" : "popup.html"
 	},
 	"background" : {
