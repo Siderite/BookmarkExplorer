@@ -182,7 +182,7 @@
                 const options = items.map(itm => ApiWrapper.getUrlOptions(itm.url, schema));
                 for (let i = 0; i < options.length; i++) {
                     for (let j = 0; j < i; j++) {
-                        if (!ApiWrapper.compareUrlOptions(options[i].url, options[j].url).different) {
+                        if (!ApiWrapper.compareUrlOptions(options[i], options[j]).different) {
                             return true;
                         }
                     }
