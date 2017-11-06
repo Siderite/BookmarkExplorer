@@ -3,7 +3,7 @@
 
 	"name" : "Siderite's Bookmark Explorer",
 	"description" : "Navigate through bookmark folders on a single page",
-	"version" : "3.0.4",
+	"version" : "3.0.6",
 	"author" : "Siderite", //Edge
 
 	"permissions" : [

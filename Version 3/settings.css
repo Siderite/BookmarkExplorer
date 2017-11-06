@@ -13,6 +13,9 @@
 #divShortcutsChrome {
 	display:none;
 }
+#divShortcutsOpera {
+	display:none;
+}
 #divSettings, #divInfo, #divAdvSettings {
 	min-height:400px;
 }

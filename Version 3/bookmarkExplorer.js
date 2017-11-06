@@ -318,7 +318,7 @@
                 self.api.getSettings().then(settings => {
                     let tm = null;
                     let eh = null;
-                    const f = timeout => {
+                    let f = timeout => {
                         if (tm)
                             clearTimeout(tm);
                         tm = setTimeout(() => {
@@ -332,8 +332,9 @@
                                     self.api.closeTab(tab.id);
                                 }, settings.readLaterPageTimeout);
                             });
-                        }, timeout);
+                        }, timeout || 1);
                     };
+                    f(0.7 * settings.readLaterPageTimeout);
                     eh = self.api.onUpdatedTab((tabId, changeInfo, updatedTab) => {
                         if (tab.id == tabId && changeInfo && (changeInfo.url || changeInfo.title || changeInfo.favIconUrl)) {
                             let timeout;
@@ -348,7 +349,6 @@
                             f(timeout);
                         }
                     });
-                    f(0.6 * settings.readLaterPageTimeout);
                 });
             });
         }
