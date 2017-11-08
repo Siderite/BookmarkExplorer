@@ -33,6 +33,7 @@
             this.sendMessageTimeout = 5000;
             this.sendMessageInterval = null;
             this.urlHistoryKey = 'urlHistory';
+			this.lastError = null;
             this.init();
         }
 
@@ -1303,8 +1304,10 @@
         }
 
         getError() {
-            if (this.chr && this.chr.runtime)
-                return this.chr.runtime.lastError;
+            if (this.chr && this.chr.runtime) {
+                this.lastError = this.chr.runtime.lastError;
+				return this.lastError;
+			}
         }
 
         openOptions() {
