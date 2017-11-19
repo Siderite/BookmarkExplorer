@@ -877,7 +877,9 @@
             const withArray = Array.isArray(bms);
             if (!withArray) {
                 bms = [bms];
-            }
+            } else {
+				bms = [...bms];
+			}
             const browser = ApiWrapper.getBrowser();
             if (browser.isFirefox) {
                 bms.reverse();
@@ -889,18 +891,23 @@
                     return;
                 };
                 const nodes = [];
-                let k = bms.length;
-                bms.forEach(bm => {
-                    const newBm = ApiWrapper.clone(bm);
-                    delete newBm.dateAdded;
-                    delete newBm.id;
-                    self.chr.bookmarks.create(newBm, node => {
-                        nodes.push(node);
-                        k--;
-                        if (k == 0)
-                            resolve(withArray ? nodes : nodes[0]);
-                    });
-                });
+				let f = () => {
+					if (bms.length) {
+    	                const newBm = ApiWrapper.clone(bms[0]);
+        	            delete newBm.dateAdded;
+            	        delete newBm.id;
+						bms.splice(0,1);
+		                self.chr.bookmarks.create(newBm, node => {
+    		            	if (node) {
+								nodes.push(node);
+							}
+							f();
+        	           	});
+					} else {
+              			resolve(withArray ? nodes : nodes[0]);
+					}
+				}
+				f();
             });
             return promise;
         }

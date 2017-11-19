@@ -108,6 +108,7 @@
                     refreshMenuOptions();
                     return;
                 }
+                refreshMenuOptions();
                 divFilter.show();
                 header.text(data.folder.title);
                 subheader.empty();
@@ -194,12 +195,14 @@
                 api.getUrlComparisonSchema().then(schema => {
                     const hasData = !!(currentData && currentData.folder);
                     let hasDuplicates = false;
-                    if (!ignoreDuplicates && hasData) {
-                        hasDuplicates = anyDuplicates(currentData.folder.children, schema);
+                    if (!ignoreDuplicates) {
+						if (hasData) {
+                        	hasDuplicates = anyDuplicates(currentData.folder.children, schema);
+						}
+                    	imgSelectDuplicates.toggleClass('visible', hasData && hasDuplicates);
                     }
                     imgToggleAll.toggleClass('visible', hasData);
                     imgToggleBefore.toggleClass('visible', hasData);
-                    imgSelectDuplicates.toggleClass('visible', hasData && hasDuplicates);
                     spnHoldFolder.toggle(hasData);
                     const ul = tree.find('>ul');
                     const checkedInputs = ul.find('input:nothidden:checked');
