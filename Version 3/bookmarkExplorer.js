@@ -332,7 +332,7 @@
 										eh.remove();
 									setTimeout(() => {
 										self.api.closeTab(newTabId);
-									}, 1);
+									}, 2000);
 								});
 							}, timeout || 1);
 					};
