@@ -169,6 +169,7 @@
 				if (tab.url) {
 					self.refreshIconAndMenu(tab);
 					self.refreshManage(tab, forced);
+					self.inviteToBlog();
 				}
 			});
 		}
@@ -475,7 +476,7 @@
 						if (browser.isFirefox) {
 							notification = {
 								title : "Visit Siderite's Blog",
-								message : "Use this link to ask for features, report bugs or discuss the extension:\r\nhttps://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html",
+								message : "Use this link to ask for features, report bugs or discuss the extension:\r\nhttps://siderite.dev/blog/chrome-extension-bookmark-explorer.html",
 							};
 							settings.showBlogInvitation = false;
 							if (!firstTime) {
@@ -490,7 +491,7 @@
 								title : "Visit Siderite's Blog",
 								message : "Click on the link below to ask for features, report bugs or discuss the extension",
 								buttons : [{
-										title : 'https://siderite.blogspot.com/2016/03/my-first-chrome-extension-bookmark.html',
+										title : 'https://siderite.dev/blog/chrome-extension-bookmark-explorer.html',
 										clicked() {
 											self.api.selectOrNew(this.title);
 										}
@@ -533,7 +534,7 @@
 
 							if (tree.title) {
 								if (path) {
-									path += ` -> ${tree.title}`;
+									path += ` \u2192 ${tree.title}`;
 								} else {
 									path = tree.title;
 								}
@@ -582,7 +583,6 @@
 						});
 					});
 				});
-			self.inviteToBlog();
 			return promise;
 		}
 

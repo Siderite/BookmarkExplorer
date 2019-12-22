@@ -94,3 +94,11 @@ Firefox:
 *- tabs
 *	- query doesn't support internal extension URLs.
 *- look for "chrome:"
+
+- Manage links should not select the file if clicked
+- new Chrome seems to ignore suggested_key
+- change keyboard shortcut text for new Chrome
+- bug: select duplicate bookmarks not disappearing after deleting duplicates
+- quick actions, like "these are not duplicates" or "demo" or other context menu actions
+- random mode (randomize folder items)
+- a setting to disable duplicate warnings
